@@ -2,22 +2,42 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from .serializers import MealSerializer,ShiftMealSerializer
+from .serializers import MealSerializer,ShiftMealSerializer,WorkFlowSerializer
 from rest_framework.decorators import api_view,permission_classes
-from .models import ShiftMeal,Meal,WorkFlow
+from .models import ShiftMeal,Meal,WorkFlow,Shift
 import jdatetime
 
 
-@api_view(['POST'])
-@permission_classes([permissions.AllowAny])
-def get_meals_by_date_and_shift(request:Request):
-    date = request.data.get('date')
-    shift_name = request.data.get('shift')
-    if not date or not shift_name:
-        return Response({"error": "date or shift is required."}, status=status.HTTP_400_BAD_REQUEST)
+def ISO_to_gregorian(date:str):
     jalali_date = jdatetime.date.fromisoformat(date)
     gregorian_date = jalali_date.togregorian()  
-    meals = ShiftMeal.objects.filter(date=gregorian_date, shift__shift_name=shift_name)
+    return gregorian_date
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def filter_meals(request:Request):
+    filters={}
+    date = request.data.get('date')
+    shift_name = request.data.get('shift')
+    food1_name=request.data.get('food1-name')
+    food2_name=request.data.get('food2-name')
+    food_type=request.data.get('food-type')
+    daily_meal=request.data.get('daily-meal')
+    if date:
+        gregorian_date=ISO_to_gregorian(date)
+        filters["date"]=gregorian_date
+    if shift_name:
+        filters["shift__shift_name"]=shift_name
+    if food1_name:
+        filters["meal__food1__name"]=food1_name
+    if food2_name:
+        filters["meal__food2__name"]=food2_name
+    if food_type:
+        filters["meal__food_type"]=food_type
+    if daily_meal:
+        filters["meal__daily_meal"]=daily_meal
+    meals = ShiftMeal.objects.filter(**filters)
+    # meals=ShiftMeal.objects.filter(shift__shift_name=shift_name)
     serialized=ShiftMealSerializer(meals,many=True)
     return Response(serialized.data,status=status.HTTP_200_OK)
 
@@ -34,29 +54,36 @@ def get_all_reservations(requrest:Request):
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def reserve_meal(request:Request):
-    date = request.data.get('date')
-    shift_name = request.data.get('shift')
-    meal:dict = request.data.get('meal')
-    if not date or not shift_name or not meal:
-        return Response({"error": "date or shift or meal is required."}, status=status.HTTP_400_BAD_REQUEST)
-    food=meal.get('food')
-    type=meal.get('food_type')
-    daily_meal=meal.get('daily_meal')
-    if not food or not type or not daily_meal:
-        return Response({"error": "food or type or daily_meal is required."}, status=status.HTTP_400_BAD_REQUEST)
-    meal=Meal.objects.get_or_create(food=food,food_type=type,daily_meal=daily_meal)
-    jalali_date = jdatetime.date.fromisoformat(date)
-    gregorian_date = jalali_date.togregorian()
-    shift_meal=ShiftMeal.objects.get(date=gregorian_date,meal=meal,shift__shift_name=shift_name)
-    if shift_meal:
-        work_flow,created=WorkFlow.objects.get_or_create(user=request.user,shift__name=shift_name)
+    shift_meal_id:dict = request.data.get('shift-meal-id')
+    work_flow,created=WorkFlow.objects.get_or_create(shift__shift_meals__id=shift_meal_id)
+    if not created:
+        return Response(data={"error":"you have already reserve this shift meal"},status=status.HTTP_306_RESERVED)
+    serialized=WorkFlowSerializer(work_flow,many=False)
+    return Response(data=serialized.data,status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def create_shift_meal(request:Request):
+    shift_name=request.data.get('shift_name')
+    date=request.data.get('date')
+    meal_id=request.data.get('meal-id') 
+    if not shift_name or not date or not meal_id:
+        return Response({"error": "shift or date or meal is required."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        shift,created=Shift.objects.get_or_create(shift_name=shift_name)
+        meal=Meal.objects.get(id=meal_id)
+        shift_meal,created=ShiftMeal.objects.get_or_create(shift=shift,date=ISO_to_gregorian(date),meal=meal)
         if not created:
-            return Response({"error":"you have reserved this meal already"},status=status.HTTP_406_NOT_ACCEPTABLE)
-        WorkFlowSerializer
-        return Response()
-        
-    else:
-        return Response(data={"error":f"no shiftMeal with date {date} and shift {shift_name}"},status=status.HTTP_204_NO_CONTENT)
+            return Response(data={"error":"you have already create this shift meal"},status=status.HTTP_306_RESERVED)
+        serialized=ShiftMealSerializer(shift_meal,many=False)
+        return Response(data=serialized.data,status=status.HTTP_201_CREATED)
+    except Meal.DoesNotExist:
+        return Response(data={"error":f"there no existing meal with id {meal_id}"})
+    
+
+
+
 
 
 

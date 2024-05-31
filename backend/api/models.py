@@ -53,17 +53,25 @@ class SupervisorRecord(models.Model):
         verbose_name_plural='مسیولیت ها'
 
 
-class Food(models.TextChoices):
-    PIZZA="pizza","pizza"
+class Food(models.Model):
+    name=models.CharField(max_length=100,verbose_name="نام غذا")
+
+    class Meta:
+        verbose_name='غذا'
+        verbose_name_plural='غذا ها'
 
 class FoodType(models.TextChoices):
     TYPE1="type1","type1"
 
 class DailyMeal(models.TextChoices):
-    BREAKFAST="breakfast","صبحانه"
+    LUNCH="ناهار","ناهار"
+    DINNER="شام","شام"
+    DIET="غذای رژیمی","غذای رژیمی"
+
 
 class Meal(models.Model):
-    food=models.CharField(max_length=50,choices=Food.choices,verbose_name="نام غذا")
+    food1=models.ForeignKey(Food,on_delete=models.CASCADE,verbose_name="غذای 1",related_name="first_meals")
+    food2=models.ForeignKey(Food,on_delete=models.CASCADE,verbose_name="غذای 2",related_name="second_meals")
     food_type=models.CharField(max_length=50,choices=FoodType.choices,verbose_name="نوع غذا")
     daily_meal=models.CharField(max_length=50,choices=DailyMeal.choices,verbose_name="وعده غذا")
 
@@ -73,10 +81,11 @@ class Meal(models.Model):
 
 
 
+
 class ShiftMeal(models.Model):
     meal=models.ForeignKey(Meal,on_delete=models.CASCADE,verbose_name="وعده")
     date=jmodels.jDateField(verbose_name='تاریخ')
-    shift=models.ForeignKey(Shift,on_delete=models.CASCADE,verbose_name="شیفت")
+    shift=models.ForeignKey(Shift,on_delete=models.CASCADE,verbose_name="شیفت",related_name="shift_meals")
 
     class Meta:
         verbose_name="وعده شیفت"

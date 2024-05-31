@@ -35,7 +35,7 @@ admin.site.register(ShiftMeal,ShiftMealAdmin)
 admin.site.register(SupervisorRecord,SupervisorRecordAdmin)
 admin.site.register(Meal)
 admin.site.register(User)
-
+admin.site.register(Food)
 admin.site.register(Shift)
 admin.site.register(ShiftManager)
 
