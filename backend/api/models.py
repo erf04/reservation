@@ -54,13 +54,13 @@ class SupervisorRecord(models.Model):
 
 
 class Food(models.TextChoices):
-    pass
+    PIZZA="pizza","pizza"
 
 class FoodType(models.TextChoices):
-    pass
+    TYPE1="type1","type1"
 
 class DailyMeal(models.TextChoices):
-    pass
+    BREAKFAST="breakfast","صبحانه"
 
 class Meal(models.Model):
     food=models.CharField(max_length=50,choices=Food.choices,verbose_name="نام غذا")
