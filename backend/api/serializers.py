@@ -38,6 +38,13 @@ class WorkFlowSerializer(ModelSerializer):
     def get_shift_meal(self,obj:WorkFlow):
         shift_meal=ShiftMeal.objects.get(shift__work_flows=obj)
         return ShiftMealSerializer(shift_meal,many=False).data
+    
+
+class FoodSerializer(ModelSerializer):
+    class Meta:
+        model = Meal
+        fields="__all__"
+
 
 
 
