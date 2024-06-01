@@ -1,11 +1,11 @@
 from rest_framework.serializers import ModelSerializer
-from .models import Meal,ShiftMeal,Shift,WorkFlow,User
+from .models import Meal,ShiftMeal,Shift,WorkFlow,User,Food,FoodType,DailyMeal
 from rest_framework import serializers
 
 
 class FoodSerializer(ModelSerializer):
     class Meta:
-        model = Meal
+        model = Food
         fields="__all__"
 
 class MealSerializer(ModelSerializer):
@@ -51,9 +51,22 @@ class WorkFlowSerializer(ModelSerializer):
         return ShiftMealSerializer(shift_meal,many=False).data
     
 
-class CombinedSerializer(serializers.Serializer):
+class CombinedMealShiftSerializer(serializers.Serializer):
     meals = MealSerializer(many=True)
     shifts = ShiftMealSerializer(many=True)
+
+
+
+class CombinedFoodCreationSerializer(serializers.Serializer):
+    foods=FoodSerializer(many=True)
+    food_types = serializers.ListField(
+        child=serializers.CharField(), 
+        default=[food_type.label for food_type in FoodType]
+    )
+    daily_meals = serializers.ListField(
+        child=serializers.CharField(),
+        default=[daily_meal.label for daily_meal in DailyMeal]
+    )
     
 
 

@@ -2,7 +2,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from .serializers import MealSerializer,ShiftMealSerializer,WorkFlowSerializer,ShiftSerializer,FoodSerializer,CombinedSerializer
+from .serializers import MealSerializer,ShiftMealSerializer,WorkFlowSerializer,ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer,CombinedFoodCreationSerializer
 from rest_framework.decorators import api_view,permission_classes
 from .models import ShiftMeal,Meal,WorkFlow,Shift,Food,FoodType,DailyMeal
 import jdatetime
@@ -11,6 +11,10 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .swagger_helper import token
 import json
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 def ISO_to_gregorian(date:str):
@@ -190,7 +194,7 @@ class ShiftMealAPIView(APIView):
 
             manual_parameters=[token],
             responses={
-                200:CombinedSerializer
+                200:CombinedMealShiftSerializer
             }
     )
     
@@ -206,10 +210,17 @@ class MealAPIView(APIView):
     def post(self,request:Request,*args,**kwargs):
         pass
 
+    @swagger_auto_schema(
+            operation_description="get fields required for meal creation form",
+            manual_parameters=[token],
+            responses={
+                200:CombinedFoodCreationSerializer
+            }
+    )
     def get(self,request:Request,*args,**kwargs):
         foods=Food.objects.all()
-        food_types=FoodType.get_values()
-        daily_meals=DailyMeal.get_values()
+        food_types=[food_type.label for food_type in FoodType]
+        daily_meals=[daily_meal.label for daily_meal in DailyMeal]
         foods_serialized=FoodSerializer(foods,many=True)
         return Response(data={
             "foods":foods_serialized.data,
