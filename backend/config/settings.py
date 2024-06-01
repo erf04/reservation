@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'djoser',
     'rest_framework_simplejwt',
+    'drf_yasg',
     # persian calendar
     'django_jalali',
 
