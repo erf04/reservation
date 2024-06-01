@@ -38,6 +38,6 @@ admin.site.register(User)
 admin.site.register(Food)
 admin.site.register(Shift)
 admin.site.register(ShiftManager)
-
+admin.site.register(Drink)
 admin.site.register(WorkFlow)
 

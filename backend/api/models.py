@@ -16,6 +16,9 @@ class ShiftType(models.TextChoices):
     C='C','C'
     D='D','D'
 
+    def get_values(self):
+        return [choice.value for choice in self]
+
 
 class Shift(models.Model):
     shift_name = models.CharField(max_length=100, choices=ShiftType.choices,verbose_name='نوع شیفت')
@@ -23,6 +26,8 @@ class Shift(models.Model):
     class Meta:
         verbose_name='شیفت'
         verbose_name_plural='شیفت ها'
+    def __str__(self) -> str:
+        return self.shift_name
 
 class WorkFlow(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,related_name='work_flows')
@@ -53,31 +58,63 @@ class SupervisorRecord(models.Model):
         verbose_name_plural='مسیولیت ها'
 
 
+
+
+class FoodType(models.TextChoices):
+    TYPE1="چلو","چلو"
+    TYPE2="خوراک","خوراک"
+    TYPE3="پلو","پلو"
+    DIET="غذای رژیمی","غذای رژیمی"
+    DESSERT="دسر","دسر"
+    DRINK="نوشیدنی","نوشیدنی"
+    TYPE4="غیره","غیره"
+
+    def get_values(self):
+        return [choice.value for choice in self]
+
 class Food(models.Model):
     name=models.CharField(max_length=100,verbose_name="نام غذا")
+    type=models.CharField(max_length=100,choices=FoodType.choices,verbose_name="نوع غذا")
+
 
     class Meta:
         verbose_name='غذا'
         verbose_name_plural='غذا ها'
 
-class FoodType(models.TextChoices):
-    TYPE1="type1","type1"
+    def __str__(self) -> str:
+        return self.name
+
 
 class DailyMeal(models.TextChoices):
     LUNCH="ناهار","ناهار"
     DINNER="شام","شام"
-    DIET="غذای رژیمی","غذای رژیمی"
+
+    def get_values(self):
+        return [choice.value for choice in self]
 
 
 class Meal(models.Model):
     food1=models.ForeignKey(Food,on_delete=models.CASCADE,verbose_name="غذای 1",related_name="first_meals")
     food2=models.ForeignKey(Food,on_delete=models.CASCADE,verbose_name="غذای 2",related_name="second_meals")
-    food_type=models.CharField(max_length=50,choices=FoodType.choices,verbose_name="نوع غذا")
+    diet=models.ForeignKey(Food,on_delete=models.CASCADE,related_name="diet_meals",null=True,blank=True,verbose_name="غذای رژیمی")
+    dessert=models.ForeignKey(Food,on_delete=models.CASCADE,related_name="dessert_meals",null=True,blank=True,verbose_name="دسر")
     daily_meal=models.CharField(max_length=50,choices=DailyMeal.choices,verbose_name="وعده غذا")
 
     class Meta:
         verbose_name="وعده"
         verbose_name_plural="وعده ها"
+
+    def __str__(self) -> str:
+        return f"food1:{self.food1} | food2:{self.food2} |"
+
+
+class Drink(models.Model):
+    name=models.CharField(max_length=100,verbose_name="نام")
+    meal=models.ForeignKey(Meal,related_name="drinks",on_delete=models.CASCADE,verbose_name="وعده")
+
+    class Meta:
+        verbose_name="نوشیدنی"
+        verbose_name_plural="نوشیدنی ها"
 
 
 
