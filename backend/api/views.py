@@ -11,10 +11,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .swagger_helper import token
 import json
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
+from .permissions import IsUserOrReadOnly,IsSupervisorOrReadOnly
 
 
 def ISO_to_gregorian(date:str):
@@ -50,7 +47,7 @@ def ISO_to_gregorian(date:str):
 
 )
 @api_view(['POST'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def filter_meals(request:Request):
     filters={}
     date = request.data.get('date')
@@ -132,7 +129,7 @@ def reserve_meal(request:Request):
 
 
 class ShiftMealAPIView(APIView):
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes=[IsSupervisorOrReadOnly]
 
     @swagger_auto_schema(
             manual_parameters=[
@@ -207,6 +204,8 @@ class ShiftMealAPIView(APIView):
     
 
 class MealAPIView(APIView):
+
+    permission_classes=[IsSupervisorOrReadOnly]
     @swagger_auto_schema(
             operation_description="create a new meal",
             manual_parameters=[
@@ -288,7 +287,7 @@ class MealAPIView(APIView):
 
 
 class ProfileAPIView(APIView):
-    # permission_classes=[IsAuthenticated]
+    permission_classes=[IsUserOrReadOnly]
     @swagger_auto_schema(
             operation_description="get profile details",
             manual_parameters=[token],
@@ -302,6 +301,15 @@ class ProfileAPIView(APIView):
         return Response(data=serialized.data,status=status.HTTP_200_OK)
     
 
+    @swagger_auto_schema(
+            operation_description="update profile details",
+            manual_parameters=[token],
+            request_body=UserSerializer,
+            responses={
+                200:UserSerializer,
+                400:json.dumps({"error":"something"})
+            }
+    )
     def put(self,request:Request,*args,**kwargs):
         user=request.user
         user_data=request.data
@@ -310,6 +318,41 @@ class ProfileAPIView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class FoodAPIView(APIView):
+    permission_classes=[IsSupervisorOrReadOnly]
+
+    @swagger_auto_schema(
+            manual_parameters=[token],
+            responses={
+                200:FoodSerializer(many=True),
+                403:json.dumps({"error":"don't have permission"})
+            },
+            operation_description="get all foods"
+    )
+    def get(self,request:Request,*args,**kwargs):
+        foods=Food.objects.all()
+        serializer=FoodSerializer(foods,many=True)
+        return Response(data=serializer.data,status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(
+            request_body=FoodSerializer(many=False),
+            responses={
+                201:FoodSerializer(many=False),
+                400:json.dumps({"error":"something"}),
+                403:json.dumps({"error":"don't have permission"})
+            }
+    )
+    
+    def post(self,request:Request,*args,**kwargs):
+        serializer=FoodSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
 
     
 
