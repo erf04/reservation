@@ -1,5 +1,6 @@
 import 'package:application/repository/sharedPreferences.dart';
 import 'package:application/widgets/loginSignUp_state.dart';
+import 'package:application/widgets/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
