@@ -2,7 +2,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from .serializers import MealSerializer,ShiftMealSerializer,WorkFlowSerializer,ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer,CombinedFoodCreationSerializer
+from .serializers import MealSerializer,ShiftMealSerializer,WorkFlowSerializer,ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer,CombinedFoodCreationSerializer,UserSerializer
 from rest_framework.decorators import api_view,permission_classes
 from .models import ShiftMeal,Meal,WorkFlow,Shift,Food,FoodType,DailyMeal
 import jdatetime
@@ -208,7 +208,15 @@ class ShiftMealAPIView(APIView):
 
 class MealAPIView(APIView):
     def post(self,request:Request,*args,**kwargs):
-        pass
+        food_name1=request.data.get('food-name1')
+        food_name2=request.data.get('food-name2')
+        food_type=request.data.get('food-type')
+        daily_meal=request.data.get('daily-meal')
+        if not food_name1 or not food_name2 or not food_type or not daily_meal:
+            return Response({"error": "food-name or food-type or daily-meal is required."}, status=status.HTTP_400_BAD_REQUEST)
+        food1,created=Food.objects.get_or_create(name=food_name1,food_type=food_type)
+        food1,created=Food.objects.get_or_create(name=food_name2,food_type=food_type)
+        # meal,created=Meal.objects.get_or_create(food=food,daily_meal=daily_meal)
 
     @swagger_auto_schema(
             operation_description="get fields required for meal creation form",
@@ -228,6 +236,23 @@ class MealAPIView(APIView):
             "daily_meals":daily_meals  
         },status=status.HTTP_200_OK)
         # print(food_types)
+
+
+class ProfileAPIView(APIView):
+
+    @swagger_auto_schema(
+            operation_description="get profile details",
+            manual_parameters=[token],
+            responses={
+                200:UserSerializer
+            }
+    )
+    def get(self,request:Request,*args,**kwargs):
+        user=request.user
+        serialized=UserSerializer(user,many=False)
+        return Response(data=serialized.data,status=status.HTTP_200_OK)
+    
+
 
 
     

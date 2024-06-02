@@ -5,5 +5,6 @@ urlpatterns = [
     path('get-reservations/',views.get_all_reservations),
     path('reserve/',views.reserve_meal),
     path('shiftmeal/create/',views.ShiftMealAPIView.as_view()),
-    path('meal/create/',views.MealAPIView.as_view())
+    path('meal/create/',views.MealAPIView.as_view()),
+    path('profile/',views.ProfileAPIView.as_view())
 ]
