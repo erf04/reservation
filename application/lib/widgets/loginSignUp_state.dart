@@ -14,6 +14,8 @@ class LoginSignUp extends StatefulWidget {
 enum VerifyToken { verified, expired, loggedOut }
 
 class _LoginSignUpState extends State<LoginSignUp> {
+  bool loginError = false;
+  bool signUpError = false;
   bool isInError = false;
   bool isInSignUp = false;
   bool obscurity = true;
@@ -21,7 +23,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
   TextEditingController myController2 = TextEditingController();
   TextEditingController myController3 = TextEditingController();
 
-  static Future<void> getAuthLogin(
+  static Future<bool> getAuthLogin(
       String myUser, String myPass, context) async {
     final response = await HttpClient.instance.post('auth/jwt/create/',
         data: {'username': myUser, 'password': myPass});
@@ -30,18 +32,22 @@ class _LoginSignUpState extends State<LoginSignUp> {
           response.data["access"], response.data["refresh"]);
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const MyHomePage(title: '')));
-    } else {}
+      return false;
+    } else {
+      return true;
+    }
   }
 
-  static Future<void> getAuthSignUp(
+  static Future<bool> getAuthSignUp(
       String myUser, String myPass, BuildContext context) async {
     final response;
     response = await HttpClient.instance
         .post('auth/users/', data: {'username': myUser, 'password': myPass});
     if (response.statusCode == 201) {
       _LoginSignUpState.getAuthLogin(myUser, myPass, context);
+      return false;
     } else {
-      print("NOT APPROVED");
+      return true;
     }
   }
 
@@ -70,10 +76,16 @@ class _LoginSignUpState extends State<LoginSignUp> {
             width: MediaQuery.of(context).size.width * 0.8,
             height: isInSignUp
                 ? MediaQuery.of(context).size.height * 0.56
-                : MediaQuery.of(context).size.height * 0.52,
+                : MediaQuery.of(context).size.height * 0.56,
             child: Padding(
               padding: const EdgeInsets.all(32.0),
-              child: isInSignUp ? getSignUp(context) : getLogin(context),
+              child: isInSignUp
+                  ? signUpError
+                      ? getSignUpError(context)
+                      : getSignUp(context)
+                  : loginError
+                      ? getLoginError(context)
+                      : getLogin(context),
             ),
           ),
         )
@@ -199,6 +211,9 @@ class _LoginSignUpState extends State<LoginSignUp> {
           ElevatedButton(
               onPressed: () {
                 getAuthLogin(myController1.text, myController2.text, context);
+                setState(() {
+                  loginError = true;
+                });
               },
               style: ElevatedButton.styleFrom(
                   minimumSize: Size(MediaQuery.of(context).size.width, 50),
@@ -338,8 +353,303 @@ class _LoginSignUpState extends State<LoginSignUp> {
           ),
           ElevatedButton(
               onPressed: () {
-                _LoginSignUpState.getAuthSignUp(
-                    myController1.text, myController2.text, context);
+                if (myController2.text == myController3.text) {
+                  _LoginSignUpState.getAuthSignUp(
+                      myController1.text, myController2.text, context);
+                } else {
+                  setState(() {
+                    signUpError = true;
+                  });
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                  minimumSize: Size(MediaQuery.of(context).size.width, 50),
+                  backgroundColor: Colors.orange,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16))),
+              child: Text("Submit",
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white)))
+        ])
+      ],
+    );
+  }
+
+  Column getLoginError(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(
+          height: 10,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            InkWell(
+              onTap: () {
+                setState(() {
+                  this.isInSignUp = false;
+                });
+              },
+              child: Text(
+                "Login",
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                    color: isInSignUp ? Colors.black54 : Colors.orange),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                setState(() {
+                  this.isInSignUp = true;
+                });
+              },
+              child: Text(
+                "Sign up",
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                    color: isInSignUp ? Colors.orange : Colors.black54),
+              ),
+            ),
+          ],
+        ),
+        Column(children: [
+          const SizedBox(
+            height: 40,
+          ),
+          TextField(
+            controller: myController1,
+            enableSuggestions: true,
+            autocorrect: true,
+            decoration: const InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
+                fillColor: Colors.black12,
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+                filled: true,
+                label: Text('username')),
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          TextField(
+            controller: myController2,
+            enableSuggestions: false,
+            autocorrect: false,
+            obscureText: obscurity,
+            decoration: InputDecoration(
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
+                fillColor: Colors.black12,
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+                filled: true,
+                suffixIcon: TextButton(
+                    onPressed: () {
+                      setState(() {
+                        obscurity = !obscurity;
+                      });
+                    },
+                    child: Text(obscurity ? 'show' : 'hide',
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.blue))),
+                label: const Text('Password')),
+          ),
+          Text("Wrong information! try again",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall!
+                  .copyWith(color: Colors.red)),
+          const SizedBox(
+            height: 20,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("No account yet?"),
+              SizedBox(
+                width: 8,
+              ),
+              TextButton(
+                  onPressed: () {
+                    setState(() {
+                      isInSignUp = true;
+                    });
+                  },
+                  child: Text(
+                    "register now",
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium!
+                        .copyWith(color: Colors.blue),
+                  ))
+            ],
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          ElevatedButton(
+              onPressed: () {
+                getAuthLogin(myController1.text, myController2.text, context);
+              },
+              style: ElevatedButton.styleFrom(
+                  minimumSize: Size(MediaQuery.of(context).size.width, 50),
+                  backgroundColor: Colors.orange,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16))),
+              child: Text("Submit",
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white)))
+        ])
+      ],
+    );
+  }
+
+  Column getSignUpError(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(
+          height: 10,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            InkWell(
+              onTap: () {
+                setState(() {
+                  this.isInSignUp = false;
+                });
+              },
+              child: Text(
+                "Login",
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                    color: isInSignUp ? Colors.black54 : Colors.orange),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                setState(() {
+                  this.isInSignUp = true;
+                });
+              },
+              child: Text(
+                "Sign up",
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                    color: isInSignUp ? Colors.orange : Colors.black54),
+              ),
+            ),
+          ],
+        ),
+        Column(children: [
+          const SizedBox(
+            height: 40,
+          ),
+          TextField(
+            controller: myController1,
+            enableSuggestions: true,
+            autocorrect: true,
+            decoration: const InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
+                fillColor: Colors.black12,
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+                filled: true,
+                label: Text('username')),
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          TextField(
+            controller: myController2,
+            enableSuggestions: false,
+            autocorrect: false,
+            obscureText: obscurity,
+            decoration: InputDecoration(
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
+                fillColor: Colors.black12,
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+                filled: true,
+                suffixIcon: TextButton(
+                    onPressed: () {
+                      setState(() {
+                        obscurity = !obscurity;
+                      });
+                    },
+                    child: Text(obscurity ? 'show' : 'hide',
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.blue))),
+                label: const Text('Password')),
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          TextField(
+            controller: myController3,
+            enableSuggestions: false,
+            autocorrect: false,
+            obscureText: obscurity,
+            decoration: InputDecoration(
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
+                fillColor: Colors.black12,
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+                filled: true,
+                suffixIcon: TextButton(
+                    onPressed: () {
+                      setState(() {
+                        obscurity = !obscurity;
+                      });
+                    },
+                    child: Text(obscurity ? 'show' : 'hide',
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.blue))),
+                label: const Text('Confirm Password')),
+          ),
+          Text("Something went wrong! try again",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall!
+                  .copyWith(color: Colors.red)),
+          const SizedBox(
+            height: 30,
+          ),
+          ElevatedButton(
+              onPressed: () {
+                if (myController2.text == myController3.text) {
+                  _LoginSignUpState.getAuthSignUp(
+                      myController1.text, myController2.text, context);
+                } else {
+                  setState(() {
+                    signUpError = true;
+                  });
+                }
               },
               style: ElevatedButton.styleFrom(
                   minimumSize: Size(MediaQuery.of(context).size.width, 50),
