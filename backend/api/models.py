@@ -1,7 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import django_jalali.db.models as jmodels
+from django.utils.timezone import now
+import jdatetime
 # Create your models here.
+
+
+
 
 class User(AbstractUser):
     profile=models.ImageField(upload_to='profiles/',blank=True,null=True,default='defaults/user.png',verbose_name='پروفایل')
@@ -9,6 +14,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'کاربر'
         verbose_name_plural = 'کاربران'
+
 
 class ShiftType(models.TextChoices):
     A='A','A'
@@ -57,6 +63,12 @@ class SupervisorRecord(models.Model):
         verbose_name="مسیولیت"
         verbose_name_plural='مسیولیت ها'
 
+
+def is_supervisor(self):
+    today = jdatetime.date.today()
+    return SupervisorRecord.objects.filter(user=self, from_date__lte=today, to_date__gte=today).exists()
+
+User.add_to_class('is_supervisor',property(is_supervisor))
 
 
 
