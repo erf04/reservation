@@ -11,8 +11,6 @@ class LoginSignUp extends StatefulWidget {
   State<LoginSignUp> createState() => _LoginSignUpState();
 }
 
-enum VerifyToken { verified, expired, loggedOut }
-
 class _LoginSignUpState extends State<LoginSignUp> {
   bool loginError = false;
   bool signUpError = false;

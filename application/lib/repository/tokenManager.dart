@@ -1,8 +1,51 @@
+import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/sharedPreferences.dart';
+import 'package:application/widgets/loginSignUp_state.dart';
+import 'package:flutter/cupertino.dart';
+
+
+enum VerifyToken {
+  expired,
+  loggedOut,
+  verified;
+}
 
 class TokenManager {
 
+  static Future<VerifyToken?> verifyAccess(BuildContext context) async {
+    String? myAccess = await TokenManager.getAccessToken();
+    //print(myAccess);
+    if (myAccess == null) {
+        return VerifyToken.loggedOut;
+    }
+    return await HttpClient.instance
+        .post('auth/jwt/verify/', data: {"token": myAccess}).then((response) {
+      //print(';aha');
+      return VerifyToken.verified;
+    }).catchError((error) async {
+      final response2 = await HttpClient.instance.post('auth/jwt/refresh/',
+          data: {
+            "refresh": await TokenManager.getRefreshToken()
+          }).then((response2) {
+        TokenManager.setAccessToken(response2.data["access"]);
+        //print("TRUE");
+        return VerifyToken.verified;
+      }).catchError((onError) {
+        //print("LETS SEE");
+        Future.delayed(const Duration(milliseconds: 1)).then((value) {
+          Navigator.of(context)
+              .pushReplacement(CupertinoPageRoute(builder: (context) {
+            return const LoginSignUp();
+          }));
+        });
+        //print("SHADIDAN RIDIN");
+        return VerifyToken.expired;
+      });
+      return response2;
+    });
+  }
   
+
   static Future<void> saveTokens(
       String accessToken, String refreshToken) async {
     await SharedPreferencesManager.instance
