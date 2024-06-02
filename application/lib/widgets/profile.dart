@@ -95,7 +95,7 @@ class _ProfileState extends State<Profile> {
                         padding: EdgeInsets.fromLTRB(
                             0, 0, 0, MediaQuery.of(context).size.height * 0.7),
                         child: Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                                 color: Colors.white,
                                 boxShadow: const [BoxShadow(blurRadius: 2)],
                                 borderRadius: BorderRadius.only(
@@ -116,7 +116,7 @@ class _ProfileState extends State<Profile> {
                               imageUrl:
                                   'http://10.0.2.2:8000/api${snapshot.data?.profilePhoto}',
                               placeholder: (context, url) =>
-                                  Center(child: CircularProgressIndicator()),
+                                  const Center(child: CircularProgressIndicator()),
                               errorWidget: (context, url, error) =>
                                   Center(child: Icon(Icons.error)),
                               fit: BoxFit.cover,
