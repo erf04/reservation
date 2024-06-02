@@ -21,6 +21,7 @@ class _ProfileState extends State<Profile> {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
+      print(myAccess);
       final response = await HttpClient.instance.get("api/profile/",
           options: Options(headers: {"Authorization": "JWT $myAccess"}));
       User myUser = User(
@@ -106,7 +107,8 @@ class _ProfileState extends State<Profile> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).size.height*0.4),
+                      padding: EdgeInsets.fromLTRB(
+                          0, 0, 0, MediaQuery.of(context).size.height * 0.4),
                       child: CircleAvatar(
                         backgroundColor: Colors.transparent,
                         radius: 80,
@@ -115,8 +117,8 @@ class _ProfileState extends State<Profile> {
                             child: CachedNetworkImage(
                               imageUrl:
                                   'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
-                              placeholder: (context, url) =>
-                                  const Center(child: CircularProgressIndicator()),
+                              placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator()),
                               errorWidget: (context, url, error) =>
                                   Center(child: Icon(Icons.error)),
                               fit: BoxFit.cover,
