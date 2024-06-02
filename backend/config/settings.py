@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-*u)owg8gp0t4@-md%8uem9om00g2^tk-e7qpx7n4ib&022z_wx
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -150,4 +150,16 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
+}
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'JWT': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': "JWT Authorization header using the Bearer scheme. Example: \"Authorization: JWT {token}\""
+        }
+    },
+    'USE_SESSION_AUTH': False,
 }
