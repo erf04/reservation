@@ -69,8 +69,6 @@ class FoodType(models.TextChoices):
     DRINK="نوشیدنی","نوشیدنی"
     TYPE4="غیره","غیره"
 
-    def get_values(self):
-        return [choice.value for choice in self]
 
 class Food(models.Model):
     name=models.CharField(max_length=100,verbose_name="نام غذا")
@@ -89,8 +87,6 @@ class DailyMeal(models.TextChoices):
     LUNCH="ناهار","ناهار"
     DINNER="شام","شام"
 
-    def get_values(self):
-        return [choice.value for choice in self]
 
 
 class Meal(models.Model):
