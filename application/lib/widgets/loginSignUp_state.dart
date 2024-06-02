@@ -1,4 +1,7 @@
 import 'package:application/gen/assets.gen.dart';
+import 'package:application/main.dart';
+import 'package:application/repository/HttpClient.dart';
+import 'package:application/repository/tokenManager.dart';
 import 'package:flutter/material.dart';
 
 class LoginSignUp extends StatefulWidget {
@@ -8,12 +11,40 @@ class LoginSignUp extends StatefulWidget {
   State<LoginSignUp> createState() => _LoginSignUpState();
 }
 
+enum VerifyToken { verified, expired, loggedOut }
+
 class _LoginSignUpState extends State<LoginSignUp> {
   bool isInError = false;
   bool isInSignUp = false;
   bool obscurity = true;
   TextEditingController myController1 = TextEditingController();
   TextEditingController myController2 = TextEditingController();
+  TextEditingController myController3 = TextEditingController();
+
+  static Future<void> getAuthLogin(
+      String myUser, String myPass, context) async {
+    final response = await HttpClient.instance.post('auth/jwt/create/',
+        data: {'username': myUser, 'password': myPass});
+    if (response.statusCode == 200) {
+      TokenManager.saveTokens(
+          response.data["access"], response.data["refresh"]);
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MyHomePage(title: '')));
+    } else {}
+  }
+
+  static Future<void> getAuthSignUp(
+      String myUser, String myPass, BuildContext context) async {
+    final response;
+    response = await HttpClient.instance
+        .post('auth/users/', data: {'username': myUser, 'password': myPass});
+    if (response.statusCode == 201) {
+      _LoginSignUpState.getAuthLogin(myUser, myPass, context);
+    } else {
+      print("NOT APPROVED");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -166,7 +197,9 @@ class _LoginSignUpState extends State<LoginSignUp> {
             height: 12,
           ),
           ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                getAuthLogin(myController1.text, myController2.text, context);
+              },
               style: ElevatedButton.styleFrom(
                   minimumSize: Size(MediaQuery.of(context).size.width, 50),
                   backgroundColor: Colors.orange,
@@ -183,6 +216,8 @@ class _LoginSignUpState extends State<LoginSignUp> {
   }
 
   Column getSignUp(BuildContext context) {
+    bool notEqualError = false;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -273,7 +308,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
             height: 20,
           ),
           TextField(
-            controller: myController2,
+            controller: myController3,
             enableSuggestions: false,
             autocorrect: false,
             obscureText: obscurity,
@@ -302,7 +337,10 @@ class _LoginSignUpState extends State<LoginSignUp> {
             height: 30,
           ),
           ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                _LoginSignUpState.getAuthSignUp(
+                    myController1.text, myController2.text, context);
+              },
               style: ElevatedButton.styleFrom(
                   minimumSize: Size(MediaQuery.of(context).size.width, 50),
                   backgroundColor: Colors.orange,
