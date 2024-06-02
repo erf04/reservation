@@ -14,10 +14,11 @@ class Assets {
 
   static const AssetGenImage download = AssetGenImage('assets/download.jpg');
   static const AssetGenImage images = AssetGenImage('assets/images.jpg');
+  static const AssetGenImage pintrest1 = AssetGenImage('assets/pintrest1.jpg');
   static const String wallpaper = 'assets/wallpaper.avif';
 
   /// List of all assets
-  static List<dynamic> get values => [download, images, wallpaper];
+  static List<dynamic> get values => [download, images, pintrest1, wallpaper];
 }
 
 class AssetGenImage {
