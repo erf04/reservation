@@ -207,16 +207,65 @@ class ShiftMealAPIView(APIView):
     
 
 class MealAPIView(APIView):
+    @swagger_auto_schema(
+            operation_description="create a new meal",
+            manual_parameters=[
+                token,
+                openapi.Parameter(
+                    name="food1-id",
+                    in_=openapi.IN_QUERY,
+                    type=openapi.TYPE_INTEGER,
+                    required=True
+                ),
+                openapi.Parameter(
+                    name="food2-id",
+                    in_=openapi.IN_QUERY,
+                    type=openapi.TYPE_INTEGER,
+                    required=True
+                ),
+                openapi.Parameter(
+                    name="daily-meal",
+                    in_=openapi.IN_QUERY,
+                    type=openapi.TYPE_STRING,
+                    required=True
+                ),
+                openapi.Parameter(
+                    name="diet-id",
+                    in_=openapi.IN_QUERY,
+                    type=openapi.TYPE_INTEGER,
+                    required=False
+                ),
+                openapi.Parameter(
+                    name="dessert-id",
+                    in_=openapi.IN_QUERY,
+                    type=openapi.TYPE_INTEGER,
+                    required=False
+                ),
+
+            ],
+            responses={
+                400:json.dumps({"error": "food-name or food-type or daily-meal is required."}),
+                201:MealSerializer(many=False),
+                306:json.dumps({"error":f"you have already create this meal and it's id is <meal id>"})
+            }
+    )
     def post(self,request:Request,*args,**kwargs):
-        food_name1=request.data.get('food-name1')
-        food_name2=request.data.get('food-name2')
-        food_type=request.data.get('food-type')
+        food1_id=request.data.get('food1-id')
+        food2_id=request.data.get('food2-id')
+        # food_type=request.data.get('food-type')
         daily_meal=request.data.get('daily-meal')
-        if not food_name1 or not food_name2 or not food_type or not daily_meal:
+        diet_id=request.data.get('diet-id')
+        dessert_id=request.data.get('dessert-id')
+        if not food1_id or not food2_id  or not daily_meal:
             return Response({"error": "food-name or food-type or daily-meal is required."}, status=status.HTTP_400_BAD_REQUEST)
-        food1,created=Food.objects.get_or_create(name=food_name1,food_type=food_type)
-        food1,created=Food.objects.get_or_create(name=food_name2,food_type=food_type)
-        # meal,created=Meal.objects.get_or_create(food=food,daily_meal=daily_meal)
+        food1=Food.objects.get(id=food1_id)
+        food2=Food.objects.get(id=food2_id)
+        meal,created=Meal.objects.get_or_create(food1=food1,food2=food2,diet__id=diet_id,dessert__id=dessert_id,daily_meal=daily_meal)
+        if not created:
+            return Response(data={"error":f"you have already create this meal and it's id is {meal.id}"},status=status.HTTP_306_RESERVED)
+        serialized=MealSerializer(meal,many=False)
+        return Response(serialized.data,status=status.HTTP_201_CREATED)
+        
 
     @swagger_auto_schema(
             operation_description="get fields required for meal creation form",
@@ -239,7 +288,7 @@ class MealAPIView(APIView):
 
 
 class ProfileAPIView(APIView):
-
+    # permission_classes=[IsAuthenticated]
     @swagger_auto_schema(
             operation_description="get profile details",
             manual_parameters=[token],
@@ -251,6 +300,17 @@ class ProfileAPIView(APIView):
         user=request.user
         serialized=UserSerializer(user,many=False)
         return Response(data=serialized.data,status=status.HTTP_200_OK)
+    
+
+    def put(self,request:Request,*args,**kwargs):
+        user=request.user
+        user_data=request.data
+        serializer=UserSerializer(user, data=user_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     
 
 
