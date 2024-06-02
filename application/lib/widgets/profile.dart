@@ -114,7 +114,7 @@ class _ProfileState extends State<Profile> {
                           child: Container(
                             child: CachedNetworkImage(
                               imageUrl:
-                                  'http://10.0.2.2:8000/api${snapshot.data?.profilePhoto}',
+                                  'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
                               placeholder: (context, url) =>
                                   const Center(child: CircularProgressIndicator()),
                               errorWidget: (context, url, error) =>
