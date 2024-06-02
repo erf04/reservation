@@ -13,9 +13,11 @@ class Assets {
   Assets._();
 
   static const AssetGenImage download = AssetGenImage('assets/download.jpg');
+  static const AssetGenImage images = AssetGenImage('assets/images.jpg');
+  static const String wallpaper = 'assets/wallpaper.avif';
 
   /// List of all assets
-  static List<AssetGenImage> get values => [download];
+  static List<dynamic> get values => [download, images, wallpaper];
 }
 
 class AssetGenImage {

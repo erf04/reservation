@@ -9,6 +9,7 @@ class LoginSignUp extends StatefulWidget {
 }
 
 class _LoginSignUpState extends State<LoginSignUp> {
+  bool isInError = false;
   bool isInSignUp = false;
   bool obscurity = true;
   TextEditingController myController1 = TextEditingController();
