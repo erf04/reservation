@@ -118,8 +118,8 @@ def reserve_meal(request:Request):
     try:
         shift_meal:ShiftMeal=ShiftMeal.objects.get(id=shift_meal_id)
         date=shift_meal.date
-        print()
-        if (date - jdatetime.date.today() < 0):
+        days_diff=(date - jdatetime.date.today()).days
+        if ( days_diff< 0):
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
         shift=shift_meal.shift

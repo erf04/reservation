@@ -1,5 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from .models import Meal,ShiftMeal,Shift,WorkFlow,User,Food,FoodType,DailyMeal
+from .models import Meal,ShiftMeal,Shift,WorkFlow,User,Food,FoodType,DailyMeal,Drink
 from rest_framework import serializers
 
 
@@ -8,14 +8,21 @@ class FoodSerializer(ModelSerializer):
         model = Food
         fields="__all__"
 
+
+class DrinkSerializer(ModelSerializer):
+    class Meta:
+        model = Drink
+        fields=('name',)
+
 class MealSerializer(ModelSerializer):
-    food1=FoodSerializer(many=False)
-    food2=FoodSerializer(many=False)
+    food=FoodSerializer(many=False)
     diet=FoodSerializer(many=False)
     dessert=FoodSerializer(many=False)
+    drinks=DrinkSerializer(many=True)
     class Meta:
         model = Meal
-        fields="__all__"
+        fields=('id','food','diet','dessert','daily_meal','drinks')
+
 
 
 class ShiftSerializer(ModelSerializer):
@@ -48,7 +55,7 @@ class WorkFlowSerializer(ModelSerializer):
 
     def get_shift_meal(self,obj:WorkFlow):
         shift_meal=ShiftMeal.objects.get(shift__work_flows=obj)
-        return ShiftMealSerializer(shift_meal,many=False).data
+        return ShiftMealSerializer(shift_meal,many=False)
     
 
 class CombinedMealShiftSerializer(serializers.Serializer):
