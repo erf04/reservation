@@ -68,7 +68,11 @@ def is_supervisor(self):
     today = jdatetime.date.today()
     return SupervisorRecord.objects.filter(user=self, from_date__lte=today, to_date__gte=today).exists()
 
+def is_shift_manager(self):
+    return ShiftManager.objects.filter(user=self).exists()
+
 User.add_to_class('is_supervisor',property(is_supervisor))
+User.add_to_class('is_shift_manager',property(is_shift_manager))
 
 
 
@@ -92,7 +96,7 @@ class Food(models.Model):
         verbose_name_plural='غذا ها'
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name} | {self.type}"
 
 
 class DailyMeal(models.TextChoices):
@@ -102,8 +106,8 @@ class DailyMeal(models.TextChoices):
 
 
 class Meal(models.Model):
-    food1=models.ForeignKey(Food,on_delete=models.CASCADE,verbose_name="غذای 1",related_name="first_meals")
-    food2=models.ForeignKey(Food,on_delete=models.CASCADE,verbose_name="غذای 2",related_name="second_meals")
+    food=models.ForeignKey(Food,on_delete=models.CASCADE,verbose_name="غذا",related_name="meals")
+    # food2=models.ForeignKey(Food,on_delete=models.CASCADE,verbose_name="غذای 2",related_name="second_meals")
     diet=models.ForeignKey(Food,on_delete=models.CASCADE,related_name="diet_meals",null=True,blank=True,verbose_name="غذای رژیمی")
     dessert=models.ForeignKey(Food,on_delete=models.CASCADE,related_name="dessert_meals",null=True,blank=True,verbose_name="دسر")
     daily_meal=models.CharField(max_length=50,choices=DailyMeal.choices,verbose_name="وعده غذا")
@@ -113,7 +117,7 @@ class Meal(models.Model):
         verbose_name_plural="وعده ها"
 
     def __str__(self) -> str:
-        return f"food1:{self.food1} | food2:{self.food2} |"
+        return f"food:{self.food}"
 
 
 class Drink(models.Model):
@@ -135,6 +139,9 @@ class ShiftMeal(models.Model):
     class Meta:
         verbose_name="وعده شیفت"
         verbose_name_plural="وعده های شیفت"
+
+    def __str__(self) -> str:
+        return f"{self.pk}: food:{self.meal.food} , date:{self.date}"
     
 
 

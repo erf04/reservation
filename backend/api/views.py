@@ -12,6 +12,9 @@ from drf_yasg import openapi
 from .swagger_helper import token
 import json
 from .permissions import IsUserOrReadOnly,IsSupervisorOrReadOnly
+from django.core.mail import send_mail
+from django.http import HttpResponse
+import jdatetime
 
 
 def ISO_to_gregorian(date:str):
@@ -52,8 +55,8 @@ def filter_meals(request:Request):
     filters={}
     date = request.data.get('date')
     shift_name = request.data.get('shift')
-    food1_name=request.data.get('food1-name')
-    food2_name=request.data.get('food2-name')
+    food=request.data.get('food-name')
+    # food2_name=request.data.get('food2-name')
     food_type=request.data.get('food-type')
     daily_meal=request.data.get('daily-meal')
     if date:
@@ -61,10 +64,8 @@ def filter_meals(request:Request):
         filters["date"]=gregorian_date
     if shift_name:
         filters["shift__shift_name"]=shift_name
-    if food1_name:
-        filters["meal__food1__name"]=food1_name
-    if food2_name:
-        filters["meal__food2__name"]=food2_name
+    if food:
+        filters["meal__food__name"]=food
     if food_type:
         filters["meal__food_type"]=food_type
     if daily_meal:
@@ -106,7 +107,8 @@ def get_all_reservations(requrest:Request):
         responses={
             201:WorkFlowSerializer(many=False),
             306:"{'error'':'already reserved'}",
-            410:"{'error':'shift meal doesn't exist'}"
+            410:"{'error':'shift meal doesn't exist'}",
+            406:"unacceptable"
         }
 )
 @api_view(['POST'])
@@ -115,6 +117,11 @@ def reserve_meal(request:Request):
     shift_meal_id:dict = request.data.get('shift-meal-id')
     try:
         shift_meal:ShiftMeal=ShiftMeal.objects.get(id=shift_meal_id)
+        date=shift_meal.date
+        print()
+        if (date - jdatetime.date.today() < 0):
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+
         shift=shift_meal.shift
         work_flow,created=WorkFlow.objects.get_or_create(shift=shift,shift__shift_meals=shift_meal,user=request.user)
         if not created:
@@ -261,7 +268,7 @@ class MealAPIView(APIView):
         food2=Food.objects.get(id=food2_id)
         meal,created=Meal.objects.get_or_create(food1=food1,food2=food2,diet__id=diet_id,dessert__id=dessert_id,daily_meal=daily_meal)
         if not created:
-            return Response(data={"error":f"you have already create this meal and it's id is {meal.id}"},status=status.HTTP_306_RESERVED)
+            return Response(data={"error":f"you have already create this meal and its id is {meal.id}"},status=status.HTTP_306_RESERVED)
         serialized=MealSerializer(meal,many=False)
         return Response(serialized.data,status=status.HTTP_201_CREATED)
         
@@ -351,6 +358,20 @@ class FoodAPIView(APIView):
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+
+def send_test_email(request):
+    try:
+        send_mail(
+            'Test Email',
+            'This is a test email.',
+            'erfank20041382@gmail.com',
+            ['amir7007.sed@gmail.com'],
+            fail_silently=False,
+        )
+        return HttpResponse("Test email sent.")
+    except Exception as e:
+        return HttpResponse(f"Failed to send email: {str(e)}")
 
 
 
