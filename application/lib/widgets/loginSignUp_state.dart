@@ -59,7 +59,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
         Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/images.jpg'),
+              image: AssetImage('assets/pintrest2.jpg'),
               fit: BoxFit
                   .cover, // This ensures the image covers the entire background
             ),
@@ -112,7 +112,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
-                    color: isInSignUp ? Colors.black54 : Colors.orange),
+                    color: isInSignUp ? Colors.blueGrey : Colors.black),
               ),
             ),
             InkWell(
@@ -126,7 +126,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
-                    color: isInSignUp ? Colors.orange : Colors.black54),
+                    color: isInSignUp ? Colors.black : Colors.blueGrey),
               ),
             ),
           ],
@@ -175,7 +175,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                         style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: Colors.blue))),
+                            color: Colors.blueGrey))),
                 label: const Text('Password')),
           ),
           const SizedBox(
@@ -184,8 +184,8 @@ class _LoginSignUpState extends State<LoginSignUp> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("No account yet?"),
-              SizedBox(
+              const Text("No account yet?"),
+              const SizedBox(
                 width: 8,
               ),
               TextButton(
@@ -199,7 +199,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium!
-                        .copyWith(color: Colors.blue),
+                        .copyWith(color: Colors.blueGrey),
                   ))
             ],
           ),
@@ -210,12 +210,14 @@ class _LoginSignUpState extends State<LoginSignUp> {
               onPressed: () {
                 getAuthLogin(myController1.text, myController2.text, context);
                 setState(() {
-                  loginError = true;
+                Future.delayed(const Duration(milliseconds: 1500), () { 
+                    loginError = true;
+                });
                 });
               },
               style: ElevatedButton.styleFrom(
                   minimumSize: Size(MediaQuery.of(context).size.width, 50),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: Colors.black26,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16))),
               child: Text("Submit",
@@ -251,7 +253,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
-                    color: isInSignUp ? Colors.black54 : Colors.orange),
+                    color: isInSignUp ? Colors.blueGrey : Colors.black),
               ),
             ),
             InkWell(
@@ -265,7 +267,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
-                    color: isInSignUp ? Colors.orange : Colors.black54),
+                    color: isInSignUp ? Colors.black : Colors.blueGrey),
               ),
             ),
           ],
@@ -314,7 +316,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                         style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: Colors.blue))),
+                            color: Colors.blueGrey))),
                 label: const Text('Password')),
           ),
           const SizedBox(
@@ -343,7 +345,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                         style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: Colors.blue))),
+                            color: Colors.blueGrey))),
                 label: const Text('Confirm Password')),
           ),
           const SizedBox(
@@ -362,7 +364,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
               },
               style: ElevatedButton.styleFrom(
                   minimumSize: Size(MediaQuery.of(context).size.width, 50),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: Colors.black26,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16))),
               child: Text("Submit",
@@ -396,7 +398,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
-                    color: isInSignUp ? Colors.black54 : Colors.orange),
+                    color: isInSignUp ? Colors.blueGrey : Colors.black),
               ),
             ),
             InkWell(
@@ -410,7 +412,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
-                    color: isInSignUp ? Colors.orange : Colors.black54),
+                    color: isInSignUp ? Colors.black : Colors.blueGrey),
               ),
             ),
           ],
@@ -459,7 +461,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                         style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: Colors.blue))),
+                            color: Colors.blueGrey))),
                 label: const Text('Password')),
           ),
           Text("Wrong information! try again",
@@ -488,7 +490,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium!
-                        .copyWith(color: Colors.blue),
+                        .copyWith(color: Colors.blueGrey),
                   ))
             ],
           ),
@@ -501,7 +503,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
               },
               style: ElevatedButton.styleFrom(
                   minimumSize: Size(MediaQuery.of(context).size.width, 50),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: Colors.black26,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16))),
               child: Text("Submit",
@@ -535,7 +537,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
-                    color: isInSignUp ? Colors.black54 : Colors.orange),
+                    color: isInSignUp ? Colors.blueGrey : Colors.black),
               ),
             ),
             InkWell(
@@ -549,7 +551,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
-                    color: isInSignUp ? Colors.orange : Colors.black54),
+                    color: isInSignUp ? Colors.black : Colors.blueGrey),
               ),
             ),
           ],
@@ -627,7 +629,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                         style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: Colors.blue))),
+                            color: Colors.blueGrey))),
                 label: const Text('Confirm Password')),
           ),
           Text("Something went wrong! try again",
@@ -651,7 +653,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
               },
               style: ElevatedButton.styleFrom(
                   minimumSize: Size(MediaQuery.of(context).size.width, 50),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16))),
               child: Text("Submit",

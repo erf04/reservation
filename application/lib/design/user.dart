@@ -5,10 +5,12 @@ class User {
   String userName;
   String profilePhoto;
   bool isSuperVisor;
+  bool isShiftManager;
   User({
     required this.id,
     required this.userName,
     required this.profilePhoto,
     required this.isSuperVisor,
+    required this.isShiftManager,
   });
 }

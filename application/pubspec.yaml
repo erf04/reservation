@@ -42,6 +42,8 @@ dependencies:
   image: ^3.0.1
   flutter_svg: ^1.0.3
   cached_network_image: ^3.3.1
+  persian_datetime_picker: ^2.7.0
+  choice: ^2.3.2
 
 dev_dependencies:
   flutter_test:

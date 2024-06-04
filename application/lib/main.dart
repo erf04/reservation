@@ -1,10 +1,14 @@
 import 'package:application/repository/sharedPreferences.dart';
+import 'package:application/widgets/HomePage.dart';
 import 'package:application/widgets/loginSignUp_state.dart';
 import 'package:application/widgets/profile.dart';
+import 'package:application/widgets/promptChoiceWidget.dart';
+import 'package:application/widgets/reservation.dart';
+import 'package:application/widgets/reserveFood.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferencesManager.instance.init();
   SystemChrome.setPreferredOrientations([
@@ -13,7 +17,6 @@ void main() async{
   ]).then((_) {
     runApp(MyApp());
   });
-
 }
 
 class MyApp extends StatelessWidget {

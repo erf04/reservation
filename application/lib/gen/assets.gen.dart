@@ -12,13 +12,27 @@ import 'package:flutter/widgets.dart';
 class Assets {
   Assets._();
 
+  static const AssetGenImage cameraIcon =
+      AssetGenImage('assets/cameraIcon.jpg');
   static const AssetGenImage download = AssetGenImage('assets/download.jpg');
   static const AssetGenImage images = AssetGenImage('assets/images.jpg');
   static const AssetGenImage pintrest1 = AssetGenImage('assets/pintrest1.jpg');
+  static const AssetGenImage pintrest2 = AssetGenImage('assets/pintrest2.jpg');
+  static const AssetGenImage pintrest3 = AssetGenImage('assets/pintrest3.jpg');
+  static const AssetGenImage testLogo = AssetGenImage('assets/testLogo.jpg');
   static const String wallpaper = 'assets/wallpaper.avif';
 
   /// List of all assets
-  static List<dynamic> get values => [download, images, pintrest1, wallpaper];
+  static List<dynamic> get values => [
+        cameraIcon,
+        download,
+        images,
+        pintrest1,
+        pintrest2,
+        pintrest3,
+        testLogo,
+        wallpaper
+      ];
 }
 
 class AssetGenImage {
