@@ -35,7 +35,7 @@ class ShiftMealSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields=('id','username','profile','is_supervisor')
+        fields=('id','username','profile','is_supervisor',"is_shift_manager")
         ref_name="UserSerializer"
 
 

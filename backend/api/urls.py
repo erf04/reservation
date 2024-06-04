@@ -6,5 +6,6 @@ urlpatterns = [
     path('reserve/',views.reserve_meal),
     path('shiftmeal/create/',views.ShiftMealAPIView.as_view()),
     path('meal/create/',views.MealAPIView.as_view()),
-    path('profile/',views.ProfileAPIView.as_view())
+    path('profile/',views.ProfileAPIView.as_view()),
+    path('email/',views.send_test_email)
 ]
