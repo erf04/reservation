@@ -313,44 +313,51 @@ class _ReserveListState extends State<ReserveList> {
     VerifyToken? verifyToken = await TokenManager.verifyAccess(context);
     if (verifyToken == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
-      final response = await HttpClient.instance.post('api/reserve/',
-          data: {"shift-meal-id": shiftMealId},
-          options: Options(headers: {'Authorization': 'JWT $myAccess'}));
-
-      if (response.statusCode != 201) {
+      final response = await HttpClient.instance
+          .post('api/reserve/',
+              data: {"shift-meal-id": shiftMealId},
+              options: Options(headers: {'Authorization': 'JWT $myAccess'}))
+          .catchError((onError) {
         setState(() {
           error = true;
+          print(error);
         });
-      }
-      // User myUser = User(
-      //     id: response.data["user"]["id"],
-      //     userName: response.data["user"]["username"],
-      //     profilePhoto: response.data["user"]["profile"],
-      //     isSuperVisor: response.data["user"]["is_supervisor"],
-      //     isShiftManager: response.data["user"]["is_shift_manager"]);
-      // Reserve myReserve =
-      //     Reserve(id: response.data["id"], user: user, shiftMeal: shiftMeal);
+      });
     }
+    // User myUser = User(
+    //     id: response.data["user"]["id"],
+    //     userName: response.data["user"]["username"],
+    //     profilePhoto: response.data["user"]["profile"],
+    //     isSuperVisor: response.data["user"]["is_supervisor"],
+    //     isShiftManager: response.data["user"]["is_shift_manager"]);
+    // Reserve myReserve =
+    //     Reserve(id: response.data["id"], user: user, shiftMeal: shiftMeal);
   }
 
   @override
   Widget build(BuildContext context) {
     print(myList.length);
     return error
-        ? AlertDialog(
-            title: const Text('Pop-Up Message'),
-            content: const Text("You can't reserve this meal."),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    error = false;
-                  });
-                },
-                child: Text('OK'),
+        ? Padding(
+          padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).size.height/4),
+          child: AlertDialog(
+              title: const Text('Can\'t Reserve!'),
+              content: Text(
+                "You can't reserve this meal.",
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
-            ],
-          )
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      error = false;
+                    });
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+        )
         : Expanded(
             child: ListView.builder(
                 itemCount: myList.length,
