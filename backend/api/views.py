@@ -89,7 +89,7 @@ def filter_meals(request:Request):
 @permission_classes([permissions.IsAuthenticated])
 def get_all_reservations(requrest:Request):
     my_user=requrest.user
-    shift_meals=ShiftMeal.objects.filter(shift__work_flows__user=my_user)
+    shift_meals=ShiftMeal.objects.filter(reservations__user=my_user)
     serialized=ShiftMealSerializer(shift_meals,many=True)
     return Response(serialized.data)
 
@@ -128,8 +128,8 @@ def reserve_meal(request:Request):
         has_reserve_on_day=other_reservation.exists()
         if has_reserve_on_day:
             print("in if")
-            previous_work_flow=other_reservation.first()
-            previous_work_flow.delete()
+            previous_reservation=other_reservation.first()
+            previous_reservation.delete()
         reservation,created=Reservation.objects.get_or_create(shift_meal=shift_meal,user=request.user)
         if not created:
             return Response(data={"error":"you have already reserve this shift meal"},status=status.HTTP_306_RESERVED)
