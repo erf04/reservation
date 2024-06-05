@@ -35,13 +35,13 @@ class Shift(models.Model):
     def __str__(self) -> str:
         return self.shift_name
 
-class WorkFlow(models.Model):
-    user=models.ForeignKey(User,on_delete=models.CASCADE,related_name='work_flows')
-    shift=models.ForeignKey(Shift,on_delete=models.CASCADE,related_name='work_flows')
+# class WorkFlow(models.Model):
+#     user=models.ForeignKey(User,on_delete=models.CASCADE,related_name='work_flows')
+#     shift=models.ForeignKey(Shift,on_delete=models.CASCADE,related_name='work_flows')
 
-    class Meta:
-        verbose_name='ساعت کاری'
-        verbose_name_plural='ساعت کاری ها'
+#     class Meta:
+#         verbose_name='ساعت کاری'
+#         verbose_name_plural='ساعت کاری ها'
 
 
 class ShiftManager(models.Model):
@@ -142,6 +142,15 @@ class ShiftMeal(models.Model):
     def __str__(self) -> str:
         return f"{self.pk}: food:{self.meal.food} , date:{self.date}"
     
+
+class Reservation(models.Model):
+    user=models.ForeignKey(User,related_name="reservations",on_delete=models.CASCADE,verbose_name="کاربر")
+    shift_meal=models.ForeignKey(ShiftMeal,related_name="reservations",on_delete=models.CASCADE,verbose_name="وعده شیفت")
+    date=jmodels.jDateField(verbose_name="تاریخ")
+
+    class Meta:
+        verbose_name="رزرو"
+        verbose_name_plural="رزرو ها"    
 
 
 

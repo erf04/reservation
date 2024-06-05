@@ -19,6 +19,12 @@ class SupervisorRecordForm(forms.ModelForm):
         model=SupervisorRecord
         fields="__all__"
 
+class ReservationForm(forms.ModelForm):
+    date=jDateField(widget=jadmin.widgets.AdminjDateWidget)
+    class Meta:
+        model=Reservation
+        fields="__all__"
+
 class ShiftMealAdmin(admin.ModelAdmin):
     form = ShiftMealForm
     list_display = ('meal', 'date')
@@ -31,6 +37,11 @@ class SupervisorRecordAdmin(admin.ModelAdmin):
     list_display = ('user','supervisor','from_date','to_date')
     search_fields = ('user','supervisor','from_date','to_date')
 
+class ReservationAdmin(admin.ModelAdmin):
+    form = ReservationForm
+    list_display = ('user','date','shift_meal')
+    search_fields = ('user','date','shift_meal')
+
 admin.site.register(ShiftMeal,ShiftMealAdmin)
 admin.site.register(SupervisorRecord,SupervisorRecordAdmin)
 admin.site.register(Meal)
@@ -39,5 +50,6 @@ admin.site.register(Food)
 admin.site.register(Shift)
 admin.site.register(ShiftManager)
 admin.site.register(Drink)
-admin.site.register(WorkFlow)
+# admin.site.register(Reservation)
+admin.site.register(Reservation,ReservationAdmin)
 
