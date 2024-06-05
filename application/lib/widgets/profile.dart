@@ -47,18 +47,19 @@ class _ProfileState extends State<Profile> {
               name: i["meal"]["diet"]["name"],
               type: i["meal"]["diet"]["type"]);
         }
+
         Food? dessert;
         if (i["meal"]["dessert"] == null) {
           dessert = null;
         } else {
           dessert = Food(
-              id: i["meal"]["dessert "]["id"],
+              id: i["meal"]["dessert"]["id"],
               name: i["meal"]["dessert"]["name"],
               type: i["meal"]["dessert"]["type"]);
         }
         List<String> myDrinks = [];
-        for(var j in i["meal"]["drinks"]){
-          myDrinks.add(j);
+        for (var j in i["meal"]["drinks"]) {
+          myDrinks.add(j['name']);
         }
         Meal myMeal = Meal(
             id: i["meal"]["id"],
@@ -481,12 +482,21 @@ class _ReserveHistoryState extends State<ReserveHistory> {
                       return Center(
                         child: SizedBox(
                             height: 30,
-                            child: Text(
-                              "Something went wrong!",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(color: Colors.white),
+                            child: Column(
+                              children: [
+                                Text(snapshot.error.toString(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .copyWith(color: Colors.white)),
+                                Text(
+                                  "Something went wrong!",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .copyWith(color: Colors.white),
+                                ),
+                              ],
                             )),
                       );
                     } else if (snapshot.connectionState ==

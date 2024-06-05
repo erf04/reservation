@@ -69,7 +69,7 @@ class _ReservePageState extends State<ReservePage> {
         //print("good1");
         List<String> myDrinks = [];
         for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(j);
+          myDrinks.add(j["name"]);
         }
         //print("good2");
         Meal myMeal = Meal(
@@ -314,7 +314,7 @@ class _ReserveListState extends State<ReserveList> {
     if (verifyToken == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
       final response = await HttpClient.instance.post('api/reserve/',
-          data: {"shift_meal_id": shiftMealId},
+          data: {"shift-meal-id": shiftMealId},
           options: Options(headers: {'Authorization': 'JWT $myAccess'}));
 
       if (response.statusCode != 201) {
@@ -336,66 +336,64 @@ class _ReserveListState extends State<ReserveList> {
   @override
   Widget build(BuildContext context) {
     print(myList.length);
-    return
-        error
-            ? AlertDialog(
-                title: const Text('Pop-Up Message'),
-                content: const Text("You can't reserve this meal."),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        error = false;
-                      });
-                    },
-                    child: Text('OK'),
-                  ),
-                ],
-              )
-            :
-        Expanded(
-      child: ListView.builder(
-          itemCount: myList.length,
-          itemBuilder: (context, index) {
-            //print(snapshot.data![index]);
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: InkWell(
-                onTap: () {
+    return error
+        ? AlertDialog(
+            title: const Text('Pop-Up Message'),
+            content: const Text("You can't reserve this meal."),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
                   setState(() {
-                    selectedIndex = index;
+                    error = false;
                   });
                 },
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: selectedIndex == index
-                      ? MediaQuery.of(context).size.height * (1 / 3)
-                      : 75,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.white60,
-                      boxShadow: const [BoxShadow(blurRadius: 4)]),
-                  child: Padding(
-                    padding: selectedIndex == index
-                        ? const EdgeInsets.all(32)
-                        : const EdgeInsets.all(16.0),
-                    child: selectedIndex == index
-                        ? _columnMethod(
-                            myList!,
-                            index,
-                            context,
-                          )
-                        : _rowMethod(
-                            myList!,
-                            index,
-                            context,
-                          ),
-                  ),
-                ),
+                child: Text('OK'),
               ),
-            );
-          }),
-    );
+            ],
+          )
+        : Expanded(
+            child: ListView.builder(
+                itemCount: myList.length,
+                itemBuilder: (context, index) {
+                  //print(snapshot.data![index]);
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          selectedIndex = index;
+                        });
+                      },
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        height: selectedIndex == index
+                            ? MediaQuery.of(context).size.height * (2 / 5)
+                            : 75,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.white60,
+                            boxShadow: const [BoxShadow(blurRadius: 4)]),
+                        child: Padding(
+                          padding: selectedIndex == index
+                              ? const EdgeInsets.all(32)
+                              : const EdgeInsets.all(16.0),
+                          child: selectedIndex == index
+                              ? _columnMethod(
+                                  myList!,
+                                  index,
+                                  context,
+                                )
+                              : _rowMethod(
+                                  myList!,
+                                  index,
+                                  context,
+                                ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+          );
   }
 
   Column _columnMethod(
@@ -425,18 +423,67 @@ class _ReserveListState extends State<ReserveList> {
                         .titleLarge!
                         .copyWith(fontSize: 24, fontWeight: FontWeight.bold),
                   )),
-              Text('foods: ${shiftMeal[index].meal.food.name}',
+              Text('food : ${shiftMeal[index].meal.food.name}',
                   style: Theme.of(context)
                       .textTheme
                       .titleLarge!
                       .copyWith(fontSize: 19, fontWeight: FontWeight.w300)),
               const SizedBox(
-                height: 6,
+                height: 8,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SizedBox(),
+                  Container(
+                    padding: EdgeInsets.fromLTRB(
+                        MediaQuery.of(context).size.width * 1 / 8, 0, 0, 0),
+                    width: MediaQuery.of(context).size.width * 1 / 2,
+                    height: 30,
+                    child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: shiftMeal[index].meal.drink.length + 1,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index1) {
+                          if (index1 == 0) {
+                            return Container(
+                                margin: const EdgeInsets.fromLTRB(4, 2, 4, 2),
+                                child: Text('drinks : ',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge!
+                                        .copyWith(
+                                            fontSize: 19,
+                                            fontWeight: FontWeight.w300)));
+                          }
+                          return Container(
+                              margin: const EdgeInsets.fromLTRB(4, 2, 4, 2),
+                              child: Text(
+                                  shiftMeal[index].meal.drink[index1 - 1],
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge!
+                                      .copyWith(
+                                          fontSize: 19,
+                                          fontWeight: FontWeight.w300)));
+                        }),
+                  ),
+                  SizedBox(),
+                ],
+              ),
+
+              // Text('drinks: ${shiftMeal[index].meal.food.name}',
+              //   style: Theme.of(context)
+              //       .textTheme
+              //       .titleLarge!
+              //       .copyWith(fontSize: 19, fontWeight: FontWeight.w300)),
+              const SizedBox(
+                height: 8,
               ),
               Text(
                   shiftMeal[index].meal.diet == null
-                      ? 'diet: no diet food available'
-                      : 'diet: ${shiftMeal[index].meal.diet!.name}',
+                      ? 'diet : no diet food available'
+                      : 'diet : ${shiftMeal[index].meal.diet!.name}',
                   style: Theme.of(context)
                       .textTheme
                       .titleLarge!
@@ -446,8 +493,8 @@ class _ReserveListState extends State<ReserveList> {
               ),
               Text(
                   shiftMeal[index].meal.desert == null
-                      ? 'dessert: no dessert food available'
-                      : 'dessert: ${shiftMeal[index].meal.desert!.name}',
+                      ? 'dessert : no dessert food available'
+                      : 'dessert : ${shiftMeal[index].meal.desert!.name}',
                   style: Theme.of(context)
                       .textTheme
                       .titleLarge!
