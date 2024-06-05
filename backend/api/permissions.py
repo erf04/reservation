@@ -1,7 +1,7 @@
 # permissions.py
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
-from .models import User
+from .models import User,Reservation
 
 
 class IsUserOrReadOnly(BasePermission):
@@ -22,3 +22,8 @@ class IsSupervisorOrReadOnly(BasePermission):
     # def has_object_permission(self, request:Request, view, obj):
     #     # Instance must be the same as the logged-in user
     #     return obj.is_supervisor
+
+
+class IsUserReservation(BasePermission):
+    def has_object_permission(self, request:Request, view, obj:Reservation):
+        return obj.user==request.user
