@@ -1,12 +1,17 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:math';
+
 import 'package:application/design/food.dart';
 import 'package:application/design/meal.dart';
+import 'package:application/design/reserve.dart';
 import 'package:application/design/shift.dart';
 import 'package:application/design/shiftmeal.dart';
+import 'package:application/design/user.dart';
 import 'package:application/gen/assets.gen.dart';
 import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/tokenManager.dart';
 import 'package:application/widgets/profile.dart';
+import 'package:application/widgets/reserveFood.dart';
 import 'package:choice/choice.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -35,43 +40,51 @@ class _ReservePageState extends State<ReservePage> {
           },
           options: Options(headers: {'Authorization': 'JWT $myAccess'}));
       List<ShiftMeal> myShiftMeals = [];
-      
-        for (var i in response.data) {
-          Food food1 = Food(
-              id: i["meal"]["food"]["id"],
-              name: i["meal"]["food"]["name"],
-              type: i["meal"]["food"]["type"]);
-          Food? diet;
-          if (i["meal"]["diet"] == null) {
-            diet = null;
-          } else {
-            diet = Food(
-                id: i["meal"]["diet"]["id"],
-                name: i["meal"]["diet"]["name"],
-                type: i["meal"]["diet"]["type"]);
-          }
-          Food? dessert;
-          if (i["meal"]["dessert"] == null) {
-            dessert = null;
-          } else {
-            dessert = Food(
-                id: i["meal"]["dessert "]["id"],
-                name: i["meal"]["dessert"]["name"],
-                type: i["meal"]["dessert"]["type"]);
-          }
-          Meal myMeal = Meal(
-              id: i["meal"]["id"],
-              food: food1,
-              diet: diet,
-              desert: dessert,
-              dailyMeal: i["meal"]["daily_meal"]);
-          Shift myShift =
-              Shift(id: i["shift"]["id"], shiftName: i["shift"]["shift_name"]);
-          ShiftMeal temp = ShiftMeal(
-              id: i["id"], date: i["date"], meal: myMeal, shift: myShift);
-          //print("Success");
-          myShiftMeals.add(temp);
-        
+
+      for (var i in response.data) {
+        print(i);
+        Food food1 = Food(
+            id: i["meal"]["food"]["id"],
+            name: i["meal"]["food"]["name"],
+            type: i["meal"]["food"]["type"]);
+        Food? diet;
+        if (i["meal"]["diet"] == null) {
+          diet = null;
+        } else {
+          diet = Food(
+              id: i["meal"]["diet"]["id"],
+              name: i["meal"]["diet"]["name"],
+              type: i["meal"]["diet"]["type"]);
+        }
+        //print("good");
+        Food? dessert;
+        if (i["meal"]["dessert"] == null) {
+          dessert = null;
+        } else {
+          dessert = Food(
+              id: i["meal"]["dessert"]["id"],
+              name: i["meal"]["dessert"]["name"],
+              type: i["meal"]["dessert"]["type"]);
+        }
+        //print("good1");
+        List<String> myDrinks = [];
+        for (var j in i["meal"]["drinks"]) {
+          myDrinks.add(j);
+        }
+        //print("good2");
+        Meal myMeal = Meal(
+            drink: myDrinks,
+            id: i["meal"]["id"],
+            food: food1,
+            diet: diet,
+            desert: dessert,
+            dailyMeal: i["meal"]["daily_meal"]);
+        Shift myShift =
+            Shift(id: i["shift"]["id"], shiftName: i["shift"]["shift_name"]);
+        ShiftMeal temp = ShiftMeal(
+            id: i["id"], date: i["date"], meal: myMeal, shift: myShift);
+        print("Success");
+        myShiftMeals.add(temp);
       }
       return myShiftMeals;
     }
@@ -295,11 +308,52 @@ class _ReserveListState extends State<ReserveList> {
   final List<ShiftMeal> myList;
 
   _ReserveListState({required this.myList});
+  bool error = false;
+  Future<void> reserveFood(int shiftMealId) async {
+    VerifyToken? verifyToken = await TokenManager.verifyAccess(context);
+    if (verifyToken == VerifyToken.verified) {
+      String? myAccess = await TokenManager.getAccessToken();
+      final response = await HttpClient.instance.post('api/reserve/',
+          data: {"shift_meal_id": shiftMealId},
+          options: Options(headers: {'Authorization': 'JWT $myAccess'}));
+
+      if (response.statusCode != 201) {
+        setState(() {
+          error = true;
+        });
+      }
+      // User myUser = User(
+      //     id: response.data["user"]["id"],
+      //     userName: response.data["user"]["username"],
+      //     profilePhoto: response.data["user"]["profile"],
+      //     isSuperVisor: response.data["user"]["is_supervisor"],
+      //     isShiftManager: response.data["user"]["is_shift_manager"]);
+      // Reserve myReserve =
+      //     Reserve(id: response.data["id"], user: user, shiftMeal: shiftMeal);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     print(myList.length);
-    return Expanded(
+    return
+        error
+            ? AlertDialog(
+                title: const Text('Pop-Up Message'),
+                content: const Text("You can't reserve this meal."),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        error = false;
+                      });
+                    },
+                    child: Text('OK'),
+                  ),
+                ],
+              )
+            :
+        Expanded(
       child: ListView.builder(
           itemCount: myList.length,
           itemBuilder: (context, index) {
@@ -371,12 +425,11 @@ class _ReserveListState extends State<ReserveList> {
                         .titleLarge!
                         .copyWith(fontSize: 24, fontWeight: FontWeight.bold),
                   )),
-              TextButton(
-                  onPressed: () {},
-                  child: Text(
-                      'foods: ${shiftMeal[index].meal.food.name}',
-                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          fontSize: 19, fontWeight: FontWeight.w300))),
+              Text('foods: ${shiftMeal[index].meal.food.name}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge!
+                      .copyWith(fontSize: 19, fontWeight: FontWeight.w300)),
               const SizedBox(
                 height: 6,
               ),
@@ -402,11 +455,20 @@ class _ReserveListState extends State<ReserveList> {
               const SizedBox(
                 height: 8,
               ),
-              Text(shiftMeal[index].date,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(fontSize: 19, fontWeight: FontWeight.w300)),
+              ElevatedButton(
+                  onPressed: () async {
+                    await reserveFood(shiftMeal[index].id);
+                  },
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: Size(MediaQuery.of(context).size.width, 50),
+                      backgroundColor: Colors.black26,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16))),
+                  child: Text("Reserve",
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white)))
             ],
           ),
         )
@@ -418,11 +480,11 @@ class _ReserveListState extends State<ReserveList> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Text(shiftMeals[index].shift.shiftName,
+        Text(shiftMeals[index].meal.food.name,
             style:
                 Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 19)),
         Text(
-          shiftMeals[index].date,
+          shiftMeals[index].meal.dailyMeal,
           style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 19),
         ),
       ],
