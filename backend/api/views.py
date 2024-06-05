@@ -2,9 +2,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from .serializers import MealSerializer,ShiftMealSerializer,WorkFlowSerializer,ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer,CombinedFoodCreationSerializer,UserSerializer
+from .serializers import MealSerializer,ShiftMealSerializer,ReservationSerializer,ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer,CombinedFoodCreationSerializer,UserSerializer
 from rest_framework.decorators import api_view,permission_classes
-from .models import ShiftMeal,Meal,WorkFlow,Shift,Food,FoodType,DailyMeal
+from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal
 import jdatetime
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
@@ -105,7 +105,7 @@ def get_all_reservations(requrest:Request):
             }
         ),
         responses={
-            201:WorkFlowSerializer(many=False),
+            201:ReservationSerializer(many=False),
             306:"{'error'':'already reserved'}",
             410:"{'error':'shift meal doesn't exist'}",
             406:"unacceptable"
@@ -117,20 +117,30 @@ def reserve_meal(request:Request):
     shift_meal_id:dict = request.data.get('shift-meal-id')
     try:
         shift_meal:ShiftMeal=ShiftMeal.objects.get(id=shift_meal_id)
+        daily_meal=shift_meal.meal.daily_meal
         date=shift_meal.date
         days_diff=(date - jdatetime.date.today()).days
         if ( days_diff< 0):
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        shift=shift_meal.shift
-        work_flow,created=WorkFlow.objects.get_or_create(shift=shift,shift__shift_meals=shift_meal,user=request.user)
+        other_reservation=Reservation.objects.filter(shift_meal__date=date,user=request.user,shift_meal__meal__daily_meal=daily_meal)
+        print(other_reservation.exists())
+        has_reserve_on_day=other_reservation.exists()
+        if has_reserve_on_day:
+            print("in if")
+            previous_work_flow=other_reservation.first()
+            previous_work_flow.delete()
+        reservation,created=Reservation.objects.get_or_create(shift_meal=shift_meal,user=request.user)
         if not created:
             return Response(data={"error":"you have already reserve this shift meal"},status=status.HTTP_306_RESERVED)
-        serialized=WorkFlowSerializer(work_flow,many=False)
+        serialized=ReservationSerializer(reservation,many=False)
         return Response(data=serialized.data,status=status.HTTP_201_CREATED)
 
     except ShiftMeal.DoesNotExist:
         return Response(data={"error":f"no shift meal with id {shift_meal_id}"},status=status.HTTP_410_GONE)
+    
+
+
 
 
 
