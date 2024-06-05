@@ -11,7 +11,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .swagger_helper import token
 import json
-from .permissions import IsUserOrReadOnly,IsSupervisorOrReadOnly
+from .permissions import IsUserOrReadOnly,IsSupervisorOrReadOnly,IsUserReservation
 from django.core.mail import send_mail
 from django.http import HttpResponse
 import jdatetime
@@ -139,6 +139,39 @@ def reserve_meal(request:Request):
 
     except ShiftMeal.DoesNotExist:
         return Response(data={"error":f"no shift meal with id {shift_meal_id}"},status=status.HTTP_410_GONE)
+    
+@swagger_auto_schema(
+        method="DELETE",
+        manual_parameters=[
+            token,]
+)
+@api_view(['DELETE'])
+@permission_classes([IsUserReservation])
+def delete_reservation(request:Request,id:int):
+    try:
+        reservation=Reservation.objects.get(pk=id)
+        reservation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except Reservation.DoesNotExist:
+        return Response(data={"error":f"no reservation with id {id}"},status=status.HTTP_406_NOT_ACCEPTABLE)
+    
+@swagger_auto_schema(
+        method="GET",
+        manual_parameters=[token],
+        responses={
+            200:ReservationSerializer(many=True)
+        }
+)
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_pending_reservations(request:Request):
+    now=jdatetime.datetime.today()
+    reservations=Reservation.objects.filter(user=request.user,date__gte=now)
+    serialized=ReservationSerializer(reservations,many=True)
+    return Response(data=serialized.data,status=status.HTTP_200_OK)
+    
+
+
     
 
 
@@ -383,6 +416,9 @@ def send_test_email(request):
         return HttpResponse("Test email sent.")
     except Exception as e:
         return HttpResponse(f"Failed to send email: {str(e)}")
+    
+
+
 
 
 

@@ -54,6 +54,9 @@ class ReservationSerializer(ModelSerializer):
         fields=('id','user','shift_meal','date')
 
 
+
+
+
     
 
 class CombinedMealShiftSerializer(serializers.Serializer):
