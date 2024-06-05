@@ -15,6 +15,8 @@ from .permissions import IsUserOrReadOnly,IsSupervisorOrReadOnly,IsUserReservati
 from django.core.mail import send_mail
 from django.http import HttpResponse
 import jdatetime
+from kavenegar import *
+from django.conf import settings
 
 
 def ISO_to_gregorian(date:str):
@@ -416,6 +418,13 @@ def send_test_email(request):
         return HttpResponse("Test email sent.")
     except Exception as e:
         return HttpResponse(f"Failed to send email: {str(e)}")
+    
+
+def send_sms(request:Request):
+    api = KavenegarAPI('4F6763536138714F4658476C764D534F6F5A2B48614F463173763364636670796B2B6F502B4371437473383D')
+    params = { 'sender' : '1000689696', 'receptor': '09335658101', 'message' :'.وب سرویس پیام کوتاه کاوه نگار' }
+    response = api.sms_send( params)
+    return Response(status=response.status)
     
 
 
