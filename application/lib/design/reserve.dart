@@ -5,7 +5,7 @@ import 'package:application/design/user.dart';
 class Reserve {
   int id;
   User user;
-  List<ShiftMeal> shiftMeal;
+  ShiftMeal shiftMeal;
   String date;
 
   Reserve({
