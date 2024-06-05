@@ -119,7 +119,8 @@ def reserve_meal(request:Request):
         shift_meal:ShiftMeal=ShiftMeal.objects.get(id=shift_meal_id)
         daily_meal=shift_meal.meal.daily_meal
         date=shift_meal.date
-        days_diff=(date - jdatetime.date.today()).days
+        now=jdatetime.date.today()
+        days_diff=(date - now).days
         if ( days_diff< 0):
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -130,7 +131,7 @@ def reserve_meal(request:Request):
             print("in if")
             previous_reservation=other_reservation.first()
             previous_reservation.delete()
-        reservation,created=Reservation.objects.get_or_create(shift_meal=shift_meal,user=request.user)
+        reservation,created=Reservation.objects.get_or_create(shift_meal=shift_meal,user=request.user,date=now)
         if not created:
             return Response(data={"error":"you have already reserve this shift meal"},status=status.HTTP_306_RESERVED)
         serialized=ReservationSerializer(reservation,many=False)
