@@ -1,5 +1,5 @@
 import 'package:application/repository/sharedPreferences.dart';
-import 'package:application/widgets/HomePage.dart';
+import 'package:application/widgets/MainPage.dart';
 import 'package:application/widgets/loginSignUp_state.dart';
 import 'package:application/widgets/profile.dart';
 import 'package:application/widgets/promptChoiceWidget.dart';

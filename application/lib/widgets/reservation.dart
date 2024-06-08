@@ -10,6 +10,8 @@ import 'package:application/design/user.dart';
 import 'package:application/gen/assets.gen.dart';
 import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/tokenManager.dart';
+import 'package:application/widgets/MainPage.dart';
+import 'package:application/widgets/SoftenPageTransition.dart';
 import 'package:application/widgets/profile.dart';
 import 'package:application/widgets/reserveFood.dart';
 import 'package:choice/choice.dart';
@@ -83,7 +85,7 @@ class _ReservePageState extends State<ReservePage> {
             Shift(id: i["shift"]["id"], shiftName: i["shift"]["shift_name"]);
         ShiftMeal temp = ShiftMeal(
             id: i["id"], date: i["date"], meal: myMeal, shift: myShift);
-        print("Success");
+        //print("Success");
         myShiftMeals.add(temp);
       }
       return myShiftMeals;
@@ -116,7 +118,7 @@ class _ReservePageState extends State<ReservePage> {
             children: [
               IconButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    FadePageRoute.navigateToNextPage(context, MainPage());
                   },
                   icon: const Icon(
                     CupertinoIcons.back,
@@ -308,6 +310,7 @@ class _ReserveListState extends State<ReserveList> {
   final List<ShiftMeal> myList;
 
   _ReserveListState({required this.myList});
+  bool success = false;
   bool error = false;
   Future<void> reserveFood(int shiftMealId) async {
     VerifyToken? verifyToken = await TokenManager.verifyAccess(context);
@@ -317,7 +320,11 @@ class _ReserveListState extends State<ReserveList> {
           .post('api/reserve/',
               data: {"shift-meal-id": shiftMealId},
               options: Options(headers: {'Authorization': 'JWT $myAccess'}))
-          .catchError((onError) {
+          .then((value) {
+        setState(() {
+          success = true;
+        });
+      }).catchError((onError) {
         setState(() {
           error = true;
           print(error);
@@ -339,8 +346,9 @@ class _ReserveListState extends State<ReserveList> {
     print(myList.length);
     return error
         ? Padding(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).size.height/4),
-          child: AlertDialog(
+            padding: EdgeInsets.fromLTRB(
+                0, 0, 0, MediaQuery.of(context).size.height / 4),
+            child: AlertDialog(
               title: const Text('Can\'t Reserve!'),
               content: Text(
                 "You can't reserve this meal.",
@@ -357,50 +365,73 @@ class _ReserveListState extends State<ReserveList> {
                 ),
               ],
             ),
-        )
-        : Expanded(
-            child: ListView.builder(
-                itemCount: myList.length,
-                itemBuilder: (context, index) {
-                  //print(snapshot.data![index]);
-                  return Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: InkWell(
-                      onTap: () {
+          )
+        : success
+            ? Padding(
+                padding: EdgeInsets.fromLTRB(
+                    0, 0, 0, MediaQuery.of(context).size.height / 4),
+                child: AlertDialog(
+                  title: const Text('Reserved successfully!'),
+                  content: Text(
+                    "Click ok to resume.",
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
                         setState(() {
-                          selectedIndex = index;
+                          success = false;
+                          selectedIndex = -1;
                         });
                       },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: selectedIndex == index
-                            ? MediaQuery.of(context).size.height * (2 / 5)
-                            : 75,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            color: Colors.white60,
-                            boxShadow: const [BoxShadow(blurRadius: 4)]),
-                        child: Padding(
-                          padding: selectedIndex == index
-                              ? const EdgeInsets.all(32)
-                              : const EdgeInsets.all(16.0),
-                          child: selectedIndex == index
-                              ? _columnMethod(
-                                  myList!,
-                                  index,
-                                  context,
-                                )
-                              : _rowMethod(
-                                  myList!,
-                                  index,
-                                  context,
-                                ),
-                        ),
-                      ),
+                      child: Text('OK'),
                     ),
-                  );
-                }),
-          );
+                  ],
+                ),
+              )
+            : Expanded(
+                child: ListView.builder(
+                    itemCount: myList.length,
+                    itemBuilder: (context, index) {
+                      //print(snapshot.data![index]);
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              selectedIndex = index;
+                            });
+                          },
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: selectedIndex == index
+                                ? MediaQuery.of(context).size.height * (2 / 5)
+                                : 75,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                color: Colors.white60,
+                                boxShadow: const [BoxShadow(blurRadius: 4)]),
+                            child: Padding(
+                              padding: selectedIndex == index
+                                  ? const EdgeInsets.all(32)
+                                  : const EdgeInsets.all(16.0),
+                              child: selectedIndex == index
+                                  ? _columnMethod(
+                                      myList!,
+                                      index,
+                                      context,
+                                    )
+                                  : _rowMethod(
+                                      myList!,
+                                      index,
+                                      context,
+                                    ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+              );
   }
 
   Column _columnMethod(
@@ -463,16 +494,29 @@ class _ReserveListState extends State<ReserveList> {
                                             fontSize: 19,
                                             fontWeight: FontWeight.w300)));
                           }
-                          return Container(
-                              margin: const EdgeInsets.fromLTRB(4, 2, 4, 2),
-                              child: Text(
-                                  shiftMeal[index].meal.drink[index1 - 1],
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge!
-                                      .copyWith(
-                                          fontSize: 19,
-                                          fontWeight: FontWeight.w300)));
+                          if (index1 == shiftMeal[index].meal.drink.length) {
+                            return Container(
+                                margin: const EdgeInsets.fromLTRB(4, 2, 4, 2),
+                                child: Text(
+                                    shiftMeal[index].meal.drink[index1 - 1],
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge!
+                                        .copyWith(
+                                            fontSize: 19,
+                                            fontWeight: FontWeight.w300)));
+                          } else {
+                            return Container(
+                                margin: const EdgeInsets.fromLTRB(4, 2, 4, 2),
+                                child: Text(
+                                    '${shiftMeal[index].meal.drink[index1 - 1]} -',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge!
+                                        .copyWith(
+                                            fontSize: 19,
+                                            fontWeight: FontWeight.w300)));
+                          }
                         }),
                   ),
                   SizedBox(),

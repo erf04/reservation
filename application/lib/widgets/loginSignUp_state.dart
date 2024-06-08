@@ -2,6 +2,8 @@ import 'package:application/gen/assets.gen.dart';
 import 'package:application/main.dart';
 import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/tokenManager.dart';
+import 'package:application/widgets/MainPage.dart';
+import 'package:application/widgets/SoftenPageTransition.dart';
 import 'package:flutter/material.dart';
 
 class LoginSignUp extends StatefulWidget {
@@ -28,8 +30,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
     if (response.statusCode == 200) {
       TokenManager.saveTokens(
           response.data["access"], response.data["refresh"]);
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const MyHomePage(title: '')));
+      FadePageRoute.navigateToNextPage(context, MainPage());
       return false;
     } else {
       return true;
@@ -210,9 +211,9 @@ class _LoginSignUpState extends State<LoginSignUp> {
               onPressed: () {
                 getAuthLogin(myController1.text, myController2.text, context);
                 setState(() {
-                Future.delayed(const Duration(milliseconds: 1500), () { 
+                  Future.delayed(const Duration(milliseconds: 1500), () {
                     loginError = true;
-                });
+                  });
                 });
               },
               style: ElevatedButton.styleFrom(
@@ -475,8 +476,8 @@ class _LoginSignUpState extends State<LoginSignUp> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("No account yet?"),
-              SizedBox(
+              const Text("No account yet?"),
+              const SizedBox(
                 width: 8,
               ),
               TextButton(
@@ -588,7 +589,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
                 ),
                 fillColor: Colors.black12,
                 contentPadding:
-                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
                 filled: true,
                 suffixIcon: TextButton(
                     onPressed: () {

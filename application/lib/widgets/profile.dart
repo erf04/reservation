@@ -8,6 +8,8 @@ import 'package:application/gen/assets.gen.dart';
 import 'package:application/main.dart';
 import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/tokenManager.dart';
+import 'package:application/widgets/MainPage.dart';
+import 'package:application/widgets/SoftenPageTransition.dart';
 import 'package:application/widgets/loginSignUp_state.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
@@ -418,7 +420,7 @@ class _ProfileState extends State<Profile> {
                     this.isInHistory = false;
                   });
                 } else {
-                  Navigator.of(context).pop();
+                  FadePageRoute.navigateToNextPage(context, MainPage());
                 }
                 //Navigator.pushReplacement(context, MyHomePage(title: ''));
               },
