@@ -119,207 +119,209 @@ class _MealCreationPageState extends State<MealCreationPage> {
         ),
         backgroundColor: Colors.white,
       ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/pintrest2.jpg'),
-                fit: BoxFit.cover,
+      body: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/pintrest2.jpg'),
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Card(
-                        color: Colors.blueGrey[800]!.withOpacity(0.8),
-                        margin: EdgeInsets.symmetric(vertical: 10.0),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Select Shift',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 18),
-                              ),
-                              DropdownButton<String>(
-                                dropdownColor: Colors.blueGrey[800],
-                                hint: Text('Select Shift'),
-                                value: selectedShift,
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    selectedShift = newValue;
-                                  });
-                                },
-                                items: shifts.map<DropdownMenuItem<String>>(
-                                    (String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value,
-                                        style: TextStyle(color: Colors.white)),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Colors.blueGrey[800]!.withOpacity(0.8),
-                        margin: EdgeInsets.symmetric(vertical: 10.0),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Select Date',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 18),
-                              ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blueGrey[700],
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Card(
+                          color: Colors.blueGrey[800]!.withOpacity(0.8),
+                          margin: EdgeInsets.symmetric(vertical: 10.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Select Shift',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 18),
                                 ),
-                                onPressed: () async {
-                                  Jalali? pickedDate =
-                                      await showPersianDatePicker(
-                                    context: context,
-                                    initialDate: Jalali.now(),
-                                    firstDate: Jalali(1385, 8),
-                                    lastDate: Jalali(1450, 9),
-                                  );
-                                  if (pickedDate != null) {
+                                DropdownButton<String>(
+                                  dropdownColor: Colors.blueGrey[800],
+                                  hint: Text('Select Shift'),
+                                  value: selectedShift,
+                                  onChanged: (String? newValue) {
                                     setState(() {
-                                      selectedDate =
-                                          pickedDate.formatCompactDate();
+                                      selectedShift = newValue;
                                     });
-                                  }
-                                },
-                                child: Text(selectedDate == null
-                                    ? 'Select Date'
-                                    : selectedDate!),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  internetError
-        ? Padding(
-            padding: EdgeInsets.fromLTRB(
-                0, 0, 0, MediaQuery.of(context).size.height / 4),
-            child: AlertDialog(
-              title: const Text('Can\'t Reserve!'),
-              content: Text(
-                "You can't reserve this meal.",
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      internetError = false;
-                    });
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            ),
-          )
-        : success
-            ? Padding(
-                padding: EdgeInsets.fromLTRB(
-                    0, 0, 0, MediaQuery.of(context).size.height / 4),
-                child: AlertDialog(
-                  title: const Text('Reserved successfully!'),
-                  content: Text(
-                    "Click ok to resume.",
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          success = false;
-                          selectedIndex = -1;
-                        });
-                      },
-                      child: Text('OK'),
-                    ),
-                  ],
-                ),
-              )
-            : Expanded(
-                child: ListView.builder(
-                    itemCount: meals.length,
-                    itemBuilder: (context, index) {
-                      //print(snapshot.data![index]);
-                      return Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              selectedIndex = index;
-                            });
-                          },
-                          child: Container(
-                            width: MediaQuery.of(context).size.width,
-                            height: selectedIndex == index
-                                ? MediaQuery.of(context).size.height * (2 / 5)
-                                : 75,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                color: Colors.white60,
-                                boxShadow: const [BoxShadow(blurRadius: 4)]),
-                            child: Padding(
-                              padding: selectedIndex == index
-                                  ? const EdgeInsets.all(32)
-                                  : const EdgeInsets.all(16.0),
-                              child: selectedIndex == index
-                                  ? _columnMethod(
-                                      meals!,
-                                      index,
-                                      context,
-                                    )
-                                  : _rowMethod(
-                                      meals!,
-                                      index,
-                                      context,
-                                    ),
+                                  },
+                                  items: shifts.map<DropdownMenuItem<String>>(
+                                      (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value,
+                                          style: TextStyle(color: Colors.white)),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      );
-                    }),
-              ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueGrey[900],
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        Card(
+                          color: Colors.blueGrey[800]!.withOpacity(0.8),
+                          margin: EdgeInsets.symmetric(vertical: 10.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Select Date',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 18),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blueGrey[700],
+                                  ),
+                                  onPressed: () async {
+                                    Jalali? pickedDate =
+                                        await showPersianDatePicker(
+                                      context: context,
+                                      initialDate: Jalali.now(),
+                                      firstDate: Jalali(1385, 8),
+                                      lastDate: Jalali(1450, 9),
+                                    );
+                                    if (pickedDate != null) {
+                                      setState(() {
+                                        selectedDate =
+                                            pickedDate.formatCompactDate();
+                                      });
+                                    }
+                                  },
+                                  child: Text(selectedDate == null
+                                      ? 'Select Date'
+                                      : selectedDate!),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    onPressed: selectedShift != null &&
-                            selectedMeal != null &&
-                            selectedDate != null
-                        ? submitData
-                        : null,
-                    child: Text('Submit'),
+                    SizedBox(height: 20),
+                    internetError
+          ? Padding(
+              padding: EdgeInsets.fromLTRB(
+                  0, 0, 0, MediaQuery.of(context).size.height / 4),
+              child: AlertDialog(
+                title: const Text('Can\'t Reserve!'),
+                content: Text(
+                  "You can't reserve this meal.",
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        internetError = false;
+                      });
+                    },
+                    child: Text('OK'),
                   ),
                 ],
               ),
+            )
+          : success
+              ? Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      0, 0, 0, MediaQuery.of(context).size.height / 4),
+                  child: AlertDialog(
+                    title: const Text('Reserved successfully!'),
+                    content: Text(
+                      "Click ok to resume.",
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            success = false;
+                            selectedIndex = -1;
+                          });
+                        },
+                        child: Text('OK'),
+                      ),
+                    ],
+                  ),
+                )
+              : Expanded(
+                  child: ListView.builder(
+                      itemCount: meals.length,
+                      itemBuilder: (context, index) {
+                        //print(snapshot.data![index]);
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                selectedIndex = index;
+                              });
+                            },
+                            child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              height: selectedIndex == index
+                                  ? MediaQuery.of(context).size.height * (2 / 5)
+                                  : 75,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  color: Colors.white60,
+                                  boxShadow: const [BoxShadow(blurRadius: 4)]),
+                              child: Padding(
+                                padding: selectedIndex == index
+                                    ? const EdgeInsets.all(32)
+                                    : const EdgeInsets.all(16.0),
+                                child: selectedIndex == index
+                                    ? _columnMethod(
+                                        meals!,
+                                        index,
+                                        context,
+                                      )
+                                    : _rowMethod(
+                                        meals!,
+                                        index,
+                                        context,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueGrey[900],
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                      ),
+                      onPressed: selectedShift != null &&
+                              selectedMeal != null &&
+                              selectedDate != null
+                          ? submitData
+                          : null,
+                      child: Text('Submit'),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
