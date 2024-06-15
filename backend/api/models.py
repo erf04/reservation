@@ -9,6 +9,26 @@ import jdatetime
 
 
 class User(AbstractUser):
+    @property
+    def is_supervisor(self):
+        today = jdatetime.date.today()
+        return SupervisorRecord.objects.filter(user=self, from_date__lte=today, to_date__gte=today).exists()
+    @property
+    def is_shift_manager(self):
+        return ShiftManager.objects.filter(user=self).exists()
+    
+    @is_supervisor.setter
+    def is_supervisor(self, value):
+        # You can implement logic here if you need to set the is_supervisor property
+        # However, for calculated properties like is_supervisor based on related records,
+        # setting this directly may not be necessary.
+        pass
+
+    @is_shift_manager.setter
+    def is_shift_manager(self, value):
+        # Similar to is_supervisor, you can implement logic here if needed
+        pass
+    
     profile=models.ImageField(upload_to='profiles/',blank=True,null=True,default='defaults/user.png',verbose_name='پروفایل')
 
     class Meta:
@@ -64,15 +84,9 @@ class SupervisorRecord(models.Model):
         verbose_name_plural='مسیولیت ها'
 
 
-def is_supervisor(self):
-    today = jdatetime.date.today()
-    return SupervisorRecord.objects.filter(user=self, from_date__lte=today, to_date__gte=today).exists()
 
-def is_shift_manager(self):
-    return ShiftManager.objects.filter(user=self).exists()
 
-User.add_to_class('is_supervisor',property(is_supervisor))
-User.add_to_class('is_shift_manager',property(is_shift_manager))
+
 
 
 
