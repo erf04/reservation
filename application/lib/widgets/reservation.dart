@@ -69,9 +69,9 @@ class _ReservePageState extends State<ReservePage> {
               type: i["meal"]["dessert"]["type"]);
         }
         //print("good1");
-        List<String> myDrinks = [];
+        List<Drink> myDrinks = [];
         for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(j["name"]);
+          myDrinks.add(Drink(name: j["name"]) );
         }
         //print("good2");
         Meal myMeal = Meal(
@@ -498,7 +498,7 @@ class _ReserveListState extends State<ReserveList> {
                             return Container(
                                 margin: const EdgeInsets.fromLTRB(4, 2, 4, 2),
                                 child: Text(
-                                    shiftMeal[index].meal.drink[index1 - 1],
+                                    shiftMeal[index].meal.drink[index1 - 1].name,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleLarge!

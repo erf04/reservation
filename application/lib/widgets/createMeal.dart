@@ -1,144 +1,314 @@
-import 'package:application/design/food.dart';
 import 'package:application/design/meal.dart';
-import 'package:application/design/reserve.dart';
-import 'package:application/design/shift.dart';
-import 'package:application/design/shiftmeal.dart';
-import 'package:application/design/user.dart';
 import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/tokenManager.dart';
-import 'package:application/widgets/SoftenPageTransition.dart';
-import 'package:application/widgets/loginSignUp_state.dart';
-import 'package:application/widgets/profile.dart';
-import 'package:application/widgets/reservation.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 
-class CreateFood extends StatefulWidget {
+class MealCreationPage extends StatefulWidget {
   @override
-  _CreateFoodState createState() => _CreateFoodState();
+  _MealCreationPageState createState() => _MealCreationPageState();
 }
 
-class _CreateFoodState extends State<CreateFood> {
-  Future<void> deleteReservation(int deletedId) async {
+class _MealCreationPageState extends State<MealCreationPage> {
+  List<String> shifts = [];
+  List<Meal> meals = [];
+  String? selectedShift;
+  Meal? selectedMeal;
+  String? selectedDate;
+
+  bool internetError = false;
+  bool alreadyCreated = false;
+  bool success = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchInitialData();
+  }
+
+  Future<void> fetchInitialData() async {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
-      final response = await HttpClient.instance.delete(
-          "api/delete-reservation/$deletedId/",
-          options: Options(headers: {"Authorization": "JWT $myAccess"}));
+      final response = await HttpClient.instance.get('api/shiftmeal/create/',
+          options: Options(headers: {'Authorization': 'JWT $myAccess'}));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.data);
+        setState(() {
+          shifts = List<String>.from(data['shifts']);
+          meals =
+              List<Meal>.from(data['meals'].map((meal) => Meal.fromJson(meal)));
+        });
+      } else {
+        setState(() {
+          if (response.statusCode == 306) {
+            alreadyCreated = true;
+          } else {
+            internetError = true;
+          }
+        });
+      }
     }
   }
 
-  Future<List<Reserve>> getPendingReservations() async {
+  Future<void> submitData() async {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
-      final response = await HttpClient.instance.get("api/pending-list/",
-          options: Options(headers: {"Authorization": "JWT $myAccess"}));
-      print(response.data);
-      List<Reserve> myList = [];
-      for (var j in response.data) {
-        var i = j["shift_meal"];
-        Food food1 = Food(
-            id: i["meal"]["food"]["id"],
-            name: i["meal"]["food"]["name"],
-            type: i["meal"]["food"]["type"]);
-        //print('moz1');
-        Food? diet;
-        if (i["meal"]["diet"] == null) {
-          diet = null;
-        } else {
-          diet = Food(
-              id: i["meal"]["diet"]["id"],
-              name: i["meal"]["diet"]["name"],
-              type: i["meal"]["diet"]["type"]);
-        }
-        //print('moz2');
-        Food? dessert;
-        if (i["meal"]["dessert"] == null) {
-          dessert = null;
-        } else {
-          dessert = Food(
-              id: i["meal"]["dessert"]["id"],
-              name: i["meal"]["dessert"]["name"],
-              type: i["meal"]["dessert"]["type"]);
-        }
-        //print('moz3');
-        List<String> myDrinks = [];
-        for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(j['name']);
-        }
-        //print('moz4');
-        Meal myMeal = Meal(
-            id: i["meal"]["id"],
-            drink: myDrinks,
-            food: food1,
-            diet: diet,
-            desert: dessert,
-            dailyMeal: i["meal"]["daily_meal"]);
-        print('moz5');
-        Shift myShift =
-            Shift(id: i["shift"]["id"], shiftName: i["shift"]["shift_name"]);
-        ShiftMeal temp1 = ShiftMeal(
-            id: i["id"], date: i["date"], meal: myMeal, shift: myShift);
-        Reserve temp = Reserve(
-            id: j['id'],
-            user: User(
-                id: j['user']['id'],
-                userName: j['user']['username'],
-                profilePhoto: j['user']['profile'],
-                isSuperVisor: j['user']['is_supervisor'],
-                isShiftManager: j['user']["is_shift_manager"]),
-            shiftMeal: temp1,
-            date: j['date']);
-
-        myList.add(temp);
+      final response = await HttpClient.instance.post(
+        'api/shiftmeal/create/',
+        options: Options(headers: {'Authorization': 'JWT $myAccess'}),
+        data: jsonEncode(<String, dynamic>{
+          'shift-name': selectedShift!,
+          'meal-id': selectedMeal!.id,
+          'date': selectedDate!,
+        }),
+      );
+      if (response.statusCode == 201) {
+        setState(() {});
+      } else {
+        setState(() {
+          internetError = true;
+        });
       }
-      return myList;
     }
-    return [];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          foregroundColor: Colors.white,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      appBar: AppBar(
+        title: Text('Create Shift Meal'),
+        backgroundColor: Colors.blueGrey[900],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/background.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        padding: EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
             children: [
-              IconButton(
-                  onPressed: () {
-                    FadePageRoute.navigateToNextPage(
-                        context, const LoginSignUp());
-                  },
-                  icon: const Icon(
-                    CupertinoIcons.back,
-                    size: 40,
-                    color: Color.fromARGB(255, 2, 16, 43),
-                  )),
-              Text(
-                'Create Food',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium!
-                    .copyWith(fontSize: 25, fontWeight: FontWeight.bold),
+              Card(
+                color: Colors.blueGrey[800]!.withOpacity(0.8),
+                margin: EdgeInsets.symmetric(vertical: 10.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Select Shift',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      DropdownButton<String>(
+                        dropdownColor: Colors.blueGrey[800],
+                        hint: Text('Select Shift'),
+                        value: selectedShift,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedShift = newValue;
+                          });
+                        },
+                        items: shifts
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value,
+                                style: TextStyle(color: Colors.white)),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    CupertinoIcons.mail,
-                    size: 40,
-                    color: Color.fromARGB(255, 2, 16, 43),
-                  )),
+              Card(
+                color: Colors.blueGrey[800]!.withOpacity(0.8),
+                margin: EdgeInsets.symmetric(vertical: 10.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Select Meal',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      DropdownButton<Meal>(
+                        dropdownColor: Colors.blueGrey[800],
+                        hint: Text('Select Meal'),
+                        value: selectedMeal,
+                        onChanged: (Meal? newValue) {
+                          setState(() {
+                            selectedMeal = newValue;
+                          });
+                        },
+                        items: meals.map<DropdownMenuItem<Meal>>((Meal meal) {
+                          return DropdownMenuItem<Meal>(
+                            value: meal,
+                            child: Text(meal.food.name,
+                                style: TextStyle(color: Colors.white)),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Card(
+                color: Colors.blueGrey[800]!.withOpacity(0.8),
+                margin: EdgeInsets.symmetric(vertical: 10.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Select Date',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey[700],
+                        ),
+                        onPressed: () async {
+                          Jalali? pickedDate = await showPersianDatePicker(
+                            context: context,
+                            initialDate: Jalali.now(),
+                            firstDate: Jalali(1385, 8),
+                            lastDate: Jalali(1450, 9),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              selectedDate = pickedDate.formatCompactDate();
+                            });
+                          }
+                        },
+                        child: Text(selectedDate == null
+                            ? 'Select Date'
+                            : selectedDate!),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey[900],
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                ),
+                onPressed: selectedShift != null &&
+                        selectedMeal != null &&
+                        selectedDate != null
+                    ? submitData
+                    : null,
+                child: Text('Submit'),
+              ),
             ],
           ),
-          backgroundColor: Colors.white,
         ),
-        body:SafeArea(child: Container()) 
-      );
+      ),
+    );
   }
 }
+
+
+
+// class NewMealPage extends StatefulWidget {
+//   @override
+//   _NewMealPageState createState() => _NewMealPageState();
+// }
+
+// class _NewMealPageState extends State<NewMealPage> {
+//   final _formKey = GlobalKey<FormState>();
+//   String _mealName = '';
+//   String _mealDescription = '';
+//   XFile? _mealImage;
+//   bool internetError = false;
+
+//   final ImagePicker _picker = ImagePicker();
+
+//   Future<Map<String, dynamic>> getCreationOptions() async {
+//     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
+//     if (myVerify == VerifyToken.verified) {
+//       String? myAccess = await TokenManager.getAccessToken();
+//       final response = await HttpClient.instance
+//           .get('api/shiftmeal/create/',
+//               options: Options(headers: {"Authorization": "JWT $myAccess"}))
+//           .catchError((error) {
+//         setState(() {
+//           this.internetError = true;
+//         });
+//       }).then((onValue) {
+//         for(var i in )
+//         Map<String, dynamic> myMap = {};
+//       });
+//     }
+//   }
+
+//   // Future<void> _pickImage() async {
+//   //   final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+//   //   setState(() {
+//   //     _mealImage = pickedFile;
+//   //   });
+//   // }
+
+//   void _saveMeal() {
+//     if (_formKey.currentState!.validate()) {
+//       _formKey.currentState!.save();
+//       // Save the meal to your database or state management solution here
+
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Meal Saved')),
+//       );
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         foregroundColor: Colors.white,
+//         title: Row(
+//           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//           children: [
+//             IconButton(
+//                 onPressed: () {
+//                   FadePageRoute.navigateToNextPage(context, MainPage());
+//                 },
+//                 icon: const Icon(
+//                   CupertinoIcons.back,
+//                   size: 40,
+//                   color: Color.fromARGB(255, 2, 16, 43),
+//                 )),
+//             Text(
+//               'Main Page',
+//               style: Theme.of(context)
+//                   .textTheme
+//                   .bodyMedium!
+//                   .copyWith(fontSize: 25, fontWeight: FontWeight.bold),
+//             ),
+//             IconButton(
+//                 onPressed: () {},
+//                 icon: const Icon(
+//                   CupertinoIcons.mail,
+//                   size: 40,
+//                   color: Color.fromARGB(255, 2, 16, 43),
+//                 )),
+//           ],
+//         ),
+//         backgroundColor: Colors.white,
+//       ),
+//       body: SafeArea(child: child),
+//     );
+//   }
+// }
