@@ -2,9 +2,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from .serializers import MealSerializer,ShiftMealSerializer,ReservationSerializer,ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer,CombinedFoodCreationSerializer,UserSerializer
+from .serializers import (MealSerializer,ShiftMealSerializer,ReservationSerializer,
+ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer
+,CombinedFoodCreationSerializer,UserSerializer,PasswordResetRequestSerializer,PasswordResetConfirmSerializer)
 from rest_framework.decorators import api_view,permission_classes
-from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal
+from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal,User
 import jdatetime
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
@@ -18,6 +20,11 @@ import jdatetime
 from kavenegar import *
 from django.conf import settings
 from django.http import JsonResponse
+from django.core.mail import EmailMultiAlternatives
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.template.loader import render_to_string
 
 
 def ISO_to_gregorian(date:str):
@@ -411,9 +418,9 @@ def send_test_email(request):
     try:
         send_mail(
             'Test Email',
-            'This is a test email.',
+            'kir dahanet pakdaman',
             'erfank20041382@gmail.com',
-            ['amir7007.sed@gmail.com'],
+            ['hasan84heydari@gmail.com'],
             fail_silently=False,
         )
         return HttpResponse("Test email sent.")
@@ -427,6 +434,67 @@ def send_sms(request:Request):
     response = api.sms_send( params)
     print(str(response))
     return JsonResponse(data=response[0])
+
+
+def confirm_reset_password(request:Request,uid:str,token:str):
+    return HttpResponse(f"works with {uid},{token}")
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request:Request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            user = User.objects.get(email=email)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = f"http://localhost:8000/api/password/reset/confirm?uid={uid}&token={token}"
+
+            # Render the HTML email template
+            html_content = render_to_string('email/password_reset_email.html', {
+                'user': user,
+                'reset_url': reset_url,
+            })
+
+            subject = 'Password Reset Request'
+            from_email = 'erfank20041382@gmail.com'
+            to_email = email
+
+            # Create an email message with both plain text and HTML content
+            email_message = EmailMultiAlternatives(subject, '', from_email, [to_email])
+            email_message.attach_alternative(html_content, "text/html")
+            email_message.send()
+
+            return Response({"detail": "Password reset e-mail has been sent."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request:Request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            uid = serializer.validated_data['uid']
+            token = serializer.validated_data['token']
+            new_password = serializer.validated_data['new_password']
+
+            try:
+                uid = force_str(urlsafe_base64_decode(uid))
+                user = User.objects.get(pk=uid)
+            except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+                return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if default_token_generator.check_token(user, token):
+                user.set_password(new_password)
+                user.save()
+                return Response({"detail": "Password has been reset."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 

@@ -30,6 +30,7 @@ class User(AbstractUser):
         pass
     
     profile=models.ImageField(upload_to='profiles/',blank=True,null=True,default='defaults/user.png',verbose_name='پروفایل')
+    email=models.EmailField(verbose_name='ایمیل')
 
     class Meta:
         verbose_name = 'کاربر'
