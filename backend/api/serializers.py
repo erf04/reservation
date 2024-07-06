@@ -93,40 +93,43 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         return value
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
-    uid = serializers.CharField()
-    token = serializers.CharField()
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6)
     new_password = serializers.CharField(min_length=8, write_only=True)
 
-    def validate(self, attrs):
-        uid = attrs.get('uid')
-        token = attrs.get('token')
-        new_password = attrs.get('new_password')
+    def validate_email(self, value):
+        """
+        Check if the email exists in the database.
+        """
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email is not registered.")
+        return value
+
+    def validate_new_password(self, value):
+        """
+        Check if the new password meets the criteria.
+        """
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        # Add other password validations if needed (e.g., complexity, special characters)
+        return value
+
+    def validate(self, data):
+        """
+        Check if the code is correct for the provided email.
+        """
+        email = data.get('email')
+        code = data.get('code')
 
         try:
-            # Decode the user ID
-            uid = force_str(urlsafe_base64_decode(uid))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            raise ValidationError({"uid": "Invalid UID."})
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid email or code.")
 
-        # Check the token
-        if not default_token_generator.check_token(user, token):
-            raise ValidationError({"token": "Invalid token."})
-
-        # Validate the new password
-        if len(new_password) < 8:
-            raise ValidationError({"new_password": "Password must be at least 8 characters long."})
-
-        # Add other password validations if needed (e.g., complexity)
-        # Example: At least one uppercase letter, one lowercase letter, and one digit
-        if not any(char.isdigit() for char in new_password):
-            raise ValidationError({"new_password": "Password must contain at least one digit."})
-        if not any(char.islower() for char in new_password):
-            raise ValidationError({"new_password": "Password must contain at least one lowercase letter."})
-        if not any(char.isupper() for char in new_password):
-            raise ValidationError({"new_password": "Password must contain at least one uppercase letter."})
-
-        return attrs
+        if user.reset_code != code:
+            raise serializers.ValidationError("Invalid email or code.")
+        
+        return data
 
     
 

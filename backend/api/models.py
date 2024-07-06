@@ -31,6 +31,7 @@ class User(AbstractUser):
     
     profile=models.ImageField(upload_to='profiles/',blank=True,null=True,default='defaults/user.png',verbose_name='پروفایل')
     email=models.EmailField(verbose_name='ایمیل')
+    reset_code = models.CharField(max_length=6, blank=True, null=True)
 
     class Meta:
         verbose_name = 'کاربر'
