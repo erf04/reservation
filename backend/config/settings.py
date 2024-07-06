@@ -21,6 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-*u)owg8gp0t4@-md%8uem9om00g2^tk-e7qpx7n4ib&022z_wx'
+# settings.py
+UNIQUE_APP_TOKEN = 'k5t8VNLvilR9V-dwaw0kbSkw2wNWMsCryhtBmFkJDr4'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -58,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'config.middleware.ValidateAppTokenMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
