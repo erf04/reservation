@@ -509,7 +509,7 @@ class _ReserveListState extends State<ReserveList> {
                             return Container(
                                 margin: const EdgeInsets.fromLTRB(4, 2, 4, 2),
                                 child: Text(
-                                    '${shiftMeal[index].meal.drink[index1 - 1]} -',
+                                    '${shiftMeal[index].meal.drink[index1 - 1].name} -',
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleLarge!

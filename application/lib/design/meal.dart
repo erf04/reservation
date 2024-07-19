@@ -28,13 +28,18 @@ class Meal {
   });
 
   factory Meal.fromJson(Map<String, dynamic> json) {
+    //print('going bega');
+    List<Drink> myDrinks = [];
+    for (var i in json['drinks']) {
+      //print('fucking hell');
+      myDrinks.add(Drink(name: i['name']));
+    }
     return Meal(
-      id: json['id'],
-      food: Food.fromJson(json['food']),
-      diet: Food.fromJson(json['diet']),
-      desert: Food.fromJson(json['dessert']),
-      dailyMeal: json['dailyMeal'],
-      drink: (json['drinks'] as List).map((drink) => Drink.fromJson(drink)).toList(),
-    );
+        id: json['id'],
+        food: Food.fromJson(json['food']),
+        diet: Food.fromJson(json['diet']),
+        desert: Food.fromJson(json['dessert']),
+        dailyMeal: json['daily_meal'],
+        drink: myDrinks);
   }
 }
