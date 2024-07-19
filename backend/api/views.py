@@ -2,9 +2,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from .serializers import MealSerializer,ShiftMealSerializer,ReservationSerializer,ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer,CombinedFoodCreationSerializer,UserSerializer
+from .serializers import (MealSerializer,ShiftMealSerializer,ReservationSerializer,
+ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer
+,CombinedFoodCreationSerializer,UserSerializer,PasswordResetRequestSerializer,PasswordResetConfirmSerializer)
 from rest_framework.decorators import api_view,permission_classes
-from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal
+from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal,User
 import jdatetime
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
@@ -18,6 +20,12 @@ import jdatetime
 from kavenegar import *
 from django.conf import settings
 from django.http import JsonResponse
+from django.core.mail import EmailMultiAlternatives
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.template.loader import render_to_string
+from django.utils.crypto import get_random_string
 
 
 def ISO_to_gregorian(date:str):
@@ -411,9 +419,9 @@ def send_test_email(request):
     try:
         send_mail(
             'Test Email',
-            'This is a test email.',
+            'kir dahanet pakdaman',
             'erfank20041382@gmail.com',
-            ['amir7007.sed@gmail.com'],
+            ['hasan84heydari@gmail.com'],
             fail_silently=False,
         )
         return HttpResponse("Test email sent.")
@@ -427,8 +435,59 @@ def send_sms(request:Request):
     response = api.sms_send( params)
     print(str(response))
     return JsonResponse(data=response[0])
-    
 
+
+def confirm_reset_password(request:Request,uid:str,token:str):
+    return HttpResponse(f"works with {uid},{token}")
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request: Request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            user = User.objects.get(email=email)
+            code = get_random_string(6, allowed_chars='0123456789')
+            user.reset_code = code
+            user.save()
+
+            # Render the HTML email template
+            html_content = render_to_string('email/password_reset_email.html', {
+                'user': user,
+                'code': code,
+            })
+
+            subject = 'Password Reset Request'
+            from_email = 'erfank20041382@gmail.com'
+            to_email = email
+
+            # Create an email message with both plain text and HTML content
+            email_message = EmailMultiAlternatives(subject, '', from_email, [to_email])
+            email_message.attach_alternative(html_content, "text/html")
+            email_message.send()
+
+            return Response({"detail": "Password reset e-mail has been sent."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request: Request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            new_password = serializer.validated_data['new_password']
+
+            user = User.objects.get(email=email)
+            user.set_password(new_password)
+            user.reset_code = ''
+            user.save()
+            
+            return Response({"detail": "Password has been reset."}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

@@ -10,5 +10,7 @@ urlpatterns = [
     path('email/',views.send_test_email),
     path('delete-reservation/<int:id>/',views.delete_reservation),
     path('pending-list/',views.get_pending_reservations),
-    path('sms/',views.send_sms)
+    path('sms/',views.send_sms),
+    path('password/reset/',views.PasswordResetRequestView.as_view()),
+    path('password/reset/confirm/',views.PasswordResetConfirmView.as_view()),
 ]

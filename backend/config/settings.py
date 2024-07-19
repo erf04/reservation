@@ -21,6 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-*u)owg8gp0t4@-md%8uem9om00g2^tk-e7qpx7n4ib&022z_wx'
+# settings.py
+UNIQUE_APP_TOKEN = 'k5t8VNLvilR9V-dwaw0kbSkw2wNWMsCryhtBmFkJDr4'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -58,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'config.middleware.ValidateAppTokenMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -130,9 +134,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'sagitestef@gmail.com'
-EMAIL_HOST_PASSWORD = 'sagi@test'
-DEFAULT_FROM_EMAIL = 'sagitestef@gmail.com'
+EMAIL_HOST_USER = 'erfank20041382@gmail.com'
+EMAIL_HOST_PASSWORD = 'hbsd vtrk rapm qysy'
+DEFAULT_FROM_EMAIL = 'erfank20041382gmail.com'
 
 KAVENEGAR_APIKEY='4F6763536138714F4658476C764D534F6F5A2B48614F463173763364636670796B2B6F502B4371437473383D'
 
@@ -158,10 +162,21 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
 }
 
 SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
+}
+
+DJOSER = {
+    'PASSWORD_RESET_CONFIRM_URL': 'api/password/reset/confirm/{uid}/{token}',
+    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
+    'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': True,
+    'SERIALIZERS': {},
 }
 
 SWAGGER_SETTINGS = {
