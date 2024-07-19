@@ -103,7 +103,7 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: isInHistory
-            ? myAppBar(context, 'گذشته', true)
+            ? myAppBar(context, 'تاریخچه', true)
             : myAppBar(context, 'کاربر', false),
         body: isInHistory ? const ReserveHistory() : getNormalProfileWidget());
   }
@@ -117,7 +117,7 @@ class _ProfileState extends State<Profile> {
               child: SizedBox(height: 10, child: Text("Something went wrong!")),
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
+            return Center(child: const CircularProgressIndicator());
           } else if (snapshot.hasData) {
             return SafeArea(
                 child: Stack(

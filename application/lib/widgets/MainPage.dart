@@ -70,7 +70,7 @@ class _MainPageState extends State<MainPage> {
         //print('moz3');
         List<Drink> myDrinks = [];
         for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(Drink(name: j["name"]) );
+          myDrinks.add(Drink(name: j["name"]));
         }
         //print('moz4');
         Meal myMeal = Meal(
@@ -120,6 +120,8 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
+  bool onErrorCreate = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -156,19 +158,215 @@ class _MainPageState extends State<MainPage> {
           ),
           backgroundColor: Colors.white,
         ),
-        body: FutureBuilder<User?>(
-          future: getProfileForMainPage(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
+        body:FutureBuilder<User?>(
+                future: getProfileForMainPage(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: AlertDialog(
+                        title: const Text('Can\'t connect!'),
+                        content: Text(
+                          "Something went wrong while connecting to the server!",
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        actions: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    getProfileForMainPage();
+                                  });
+                                },
+                                child: Text('Try Again!'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    Navigator.of(context)
+                                        .pushReplacement(CupertinoPageRoute(
+                                      builder: (context) => const LoginSignUp(),
+                                    ));
+                                  });
+                                },
+                                child: Text('Go back!'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  } else if (snapshot.hasData) {
+                    return SafeArea(
+                        child: Stack(fit: StackFit.expand, children: [
+                      Container(
+                        decoration: const BoxDecoration(
+                          //color: Colors.white,
+                          image: DecorationImage(
+                            image: AssetImage('assets/pintrest2.jpg'),
+                            fit: BoxFit
+                                .cover, // This ensures the image covers the entire background
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      FadePageRoute.navigateToNextPage(
+                                          context, ReservePage());
+                                    },
+                                    child: Container(
+                                      height: 65,
+                                      width: MediaQuery.of(context).size.width *
+                                              1 /
+                                              2 -
+                                          30,
+                                      decoration: const BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(12)),
+                                          color: Colors.white38),
+                                      child: Center(
+                                        child: Text(
+                                          'Reserve',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .copyWith(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(),
+                                  InkWell(
+                                    onTap: () {
+                                      FadePageRoute.navigateToNextPage(
+                                          context, const Profile());
+                                    },
+                                    child: Container(
+                                      height: 65,
+                                      width: MediaQuery.of(context).size.width *
+                                              1 /
+                                              2 -
+                                          30,
+                                      decoration: const BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(12)),
+                                          color: Colors.white38),
+                                      child: Center(
+                                        child: Text(
+                                          'Profile',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .copyWith(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      if (snapshot.data!.isSuperVisor) {
+                                        Navigator.of(context)
+                                            .pushReplacement(CupertinoPageRoute(
+                                          builder: (context) =>
+                                              MealCreationPage(),
+                                        ));
+                                      } else {
+                                        setState(() {
+                                          onErrorCreate = true;
+                                        });
+                                      }
+                                    },
+                                    child: Container(
+                                      height: 65,
+                                      width: MediaQuery.of(context).size.width *
+                                              1 /
+                                              2 -
+                                          30,
+                                      decoration: const BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(12)),
+                                          color: Colors.white38),
+                                      child: Center(
+                                        child: Text(
+                                          'Food Creation',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .copyWith(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(),
+                                  InkWell(
+                                    onTap: () {},
+                                    child: Container(
+                                      height: 65,
+                                      width: MediaQuery.of(context).size.width *
+                                              1 /
+                                              2 -
+                                          30,
+                                      decoration: const BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(12)),
+                                          color: Colors.white38),
+                                      child: Center(
+                                        child: Text(
+                                          'Manager Page',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .copyWith(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(height: 2, color: Colors.white),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                             onErrorCreate
+            ? Center(
                 child: AlertDialog(
-                  title: const Text('Can\'t connect!'),
+                  title: const Text('No access!'),
                   content: Text(
-                    "Something went wrong while connecting to the server!",
+                    "You are not currently the supervisor!",
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   actions: <Widget>[
@@ -178,267 +376,116 @@ class _MainPageState extends State<MainPage> {
                         TextButton(
                           onPressed: () {
                             setState(() {
-                              getProfileForMainPage();
+                              onErrorCreate = false;
                             });
                           },
-                          child: Text('Try Again!'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              Navigator.of(context)
-                                  .pushReplacement(CupertinoPageRoute(
-                                builder: (context) => const LoginSignUp(),
-                              ));
-                            });
-                          },
-                          child: Text('Go back!'),
+                          child: const Text('Try Again!'),
                         ),
                       ],
                     ),
                   ],
                 ),
-              );
-            } else if (snapshot.hasData) {
-              return SafeArea(
-                  child: Stack(fit: StackFit.expand, children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    //color: Colors.white,
-                    image: DecorationImage(
-                      image: AssetImage('assets/pintrest2.jpg'),
-                      fit: BoxFit
-                          .cover, // This ensures the image covers the entire background
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                FadePageRoute.navigateToNextPage(
-                                    context, ReservePage());
-                              },
-                              child: Container(
-                                height: 65,
-                                width:
-                                    MediaQuery.of(context).size.width * 1 / 2 -
-                                        30,
-                                decoration: const BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(12)),
-                                    color: Colors.white38),
-                                child: Center(
-                                  child: Text(
-                                    'Reserve',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(),
-                            InkWell(
-                              onTap: () {
-                                FadePageRoute.navigateToNextPage(
-                                    context, const Profile());
-                              },
-                              child: Container(
-                                height: 65,
-                                width:
-                                    MediaQuery.of(context).size.width * 1 / 2 -
-                                        30,
-                                decoration: const BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(12)),
-                                    color: Colors.white38),
-                                child: Center(
-                                  child: Text(
-                                    'Profile',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.of(context)
-                                    .pushReplacement(CupertinoPageRoute(
-                                  builder: (context) => MealCreationPage(),
-                                ));
-                              },
-                              child: Container(
-                                height: 65,
-                                width:
-                                    MediaQuery.of(context).size.width * 1 / 2 -
-                                        30,
-                                decoration: const BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(12)),
-                                    color: Colors.white38),
-                                child: Center(
-                                  child: Text(
-                                    'Food Creation',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(),
-                            InkWell(
-                              onTap: () {},
-                              child: Container(
-                                height: 65,
-                                width:
-                                    MediaQuery.of(context).size.width * 1 / 2 -
-                                        30,
-                                decoration: const BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(12)),
-                                    color: Colors.white38),
-                                child: Center(
-                                  child: Text(
-                                    'Manager Page',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 2, color: Colors.white),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      FutureBuilder<List<Reserve>>(
-                        future: getPendingReservations(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          } else if (snapshot.hasError) {
-                            return Center(
-                              child: AlertDialog(
-                                title: const Text('Poor Connection!'),
-                                content: Text(
-                                  "Something went wrong while connecting to the server!",
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                ),
-                                actions: <Widget>[
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            getPendingReservations();
-                                          });
-                                        },
-                                        child: const Text('Try Again!'),
+              )
+            : 
+                            FutureBuilder<List<Reserve>>(
+                              future: getPendingReservations(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Center(
+                                    child: AlertDialog(
+                                      title: const Text('Poor Connection!'),
+                                      content: Text(
+                                        "Something went wrong while connecting to the server!",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge,
                                       ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          } else if (snapshot.hasData) {
-                            return Container(
-                              height: MediaQuery.of(context).size.height / 2,
-                              width: MediaQuery.of(context).size.width,
-                              child: ListView.builder(
-                                itemCount: snapshot.data!.length,
-                                itemBuilder: (context, index) {
-                                  return Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Container(
-                                      width: MediaQuery.of(context).size.width,
-                                      height: 75,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          color: Colors.white60,
-                                          boxShadow: const [
-                                            BoxShadow(blurRadius: 4)
-                                          ]),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: _rowMethod(
-                                          snapshot.data!,
-                                          index,
-                                          context,
+                                      actions: <Widget>[
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  getPendingReservations();
+                                                });
+                                              },
+                                              child: const Text('Try Again!'),
+                                            ),
+                                          ],
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   );
-                                },
-                              ),
-                            );
-                          } else {
-                            return Center(
-                              child: Text(
-                                " NO DATA",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .copyWith(color: Colors.white),
-                              ),
-                            );
-                          }
-                        },
+                                } else if (snapshot.hasData) {
+                                  return Container(
+                                    height:
+                                        MediaQuery.of(context).size.height / 2,
+                                    width: MediaQuery.of(context).size.width,
+                                    child: ListView.builder(
+                                      itemCount: snapshot.data!.length,
+                                      itemBuilder: (context, index) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Container(
+                                            width: MediaQuery.of(context)
+                                                .size
+                                                .width,
+                                            height: 75,
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                color: Colors.white60,
+                                                boxShadow: const [
+                                                  BoxShadow(blurRadius: 4)
+                                                ]),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(16.0),
+                                              child: _rowMethod(
+                                                snapshot.data!,
+                                                index,
+                                                context,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                } else {
+                                  return Center(
+                                    child: Text(
+                                      " NO DATA",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge!
+                                          .copyWith(color: Colors.white),
+                                    ),
+                                  );
+                                }
+                              },
+                            )
+                          ],
+                        ),
                       )
-                    ],
-                  ),
-                )
-              ]));
-            } else {
-              return Center(
-                  child: Text("NO DATA",
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge!
-                          .copyWith(color: Colors.white)));
-            }
-          },
-        ));
+                    ]));
+                  } else {
+                    return Center(
+                        child: Text("NO DATA",
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge!
+                                .copyWith(color: Colors.white)));
+                  }
+                },
+              ));
   }
 
   Row _rowMethod(List<Reserve> reserves, int index, BuildContext context) {
