@@ -37,54 +37,54 @@ def ISO_to_gregorian(date:str):
 
         
 
-@swagger_auto_schema(
-    method="POST",
-    manual_parameters=[
-        token
-    ],
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            'date': openapi.Schema(type=openapi.TYPE_STRING, description='YYYY-MM-DD'),
-            'shift': openapi.Schema(type=openapi.TYPE_STRING, description='shift name (A,B,C,D)'),
-            'food1-name': openapi.Schema(type=openapi.TYPE_STRING, description='food1 name'),
-            'food2-name': openapi.Schema(type=openapi.TYPE_STRING, description='food2 name'),
-            'food-type':openapi.Schema(type=openapi.TYPE_STRING, description="food type ['دسر','...']"),
-            'daily-meal':openapi.Schema(type=openapi.TYPE_STRING, description='[ناهار , شام]'),
+class ReservationView(APIView):
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            token
+        ],
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'date': openapi.Schema(type=openapi.TYPE_STRING, description='YYYY-MM-DD'),
+                'shift': openapi.Schema(type=openapi.TYPE_STRING, description='shift name (A,B,C,D)'),
+                'food1-name': openapi.Schema(type=openapi.TYPE_STRING, description='food1 name'),
+                'food2-name': openapi.Schema(type=openapi.TYPE_STRING, description='food2 name'),
+                'food-type':openapi.Schema(type=openapi.TYPE_STRING, description="food type ['دسر','...']"),
+                'daily-meal':openapi.Schema(type=openapi.TYPE_STRING, description='[ناهار , شام]'),
+
+            }
+        ),
+        operation_description="to filter the shift meals",
+        responses={
+            200: ShiftMealSerializer(many=True)
         }
-    ),
-    operation_description="to filter the shift meals",
-    responses={
-        200: ShiftMealSerializer(many=True)
-    }
 
-)
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def filter_meals(request:Request):
-    filters={}
-    date = request.data.get('date')
-    shift_name = request.data.get('shift')
-    food=request.data.get('food-name')
-    # food2_name=request.data.get('food2-name')
-    food_type=request.data.get('food-type')
-    daily_meal=request.data.get('daily-meal')
-    if date:
-        gregorian_date=ISO_to_gregorian(date)
-        filters["date"]=gregorian_date
-    if shift_name:
-        filters["shift__shift_name"]=shift_name
-    if food:
-        filters["meal__food__name"]=food
-    if food_type:
-        filters["meal__food_type"]=food_type
-    if daily_meal:
-        filters["meal__daily_meal"]=daily_meal
-    meals = ShiftMeal.objects.filter(**filters)
-    # meals=ShiftMeal.objects.filter(shift__shift_name=shift_name)
-    serialized=ShiftMealSerializer(meals,many=True)
-    return Response(serialized.data,status=status.HTTP_200_OK)
+    )
+    @permission_classes([permissions.IsAuthenticated])
+    def post(self,request:Request):
+        filters={}
+        date = request.data.get('date')
+        shift_name = request.data.get('shift')
+        food=request.data.get('food-name')
+        # food2_name=request.data.get('food2-name')
+        food_type=request.data.get('food-type')
+        daily_meal=request.data.get('daily-meal')
+        if date:
+            gregorian_date=ISO_to_gregorian(date)
+            filters["date"]=gregorian_date
+        if shift_name:
+            filters["shift__shift_name"]=shift_name
+        if food:
+            filters["meal__food__name"]=food
+        if food_type:
+            filters["meal__food_type"]=food_type
+        if daily_meal:
+            filters["meal__daily_meal"]=daily_meal
+        meals = ShiftMeal.objects.filter(**filters)
+        # meals=ShiftMeal.objects.filter(shift__shift_name=shift_name)
+        serialized=ShiftMealSerializer(meals,many=True,context={"request":request})
+        return Response(serialized.data,status=status.HTTP_200_OK)
 
 @swagger_auto_schema(
         method='get',

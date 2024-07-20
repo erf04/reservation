@@ -39,10 +39,13 @@ class ShiftSerializer(ModelSerializer):
 class ShiftMealSerializer(ModelSerializer):
     meal=MealSerializer(many=False)
     shift=ShiftSerializer(many=False)
+    is_reserved=serializers.SerializerMethodField()
     class Meta:
         model = ShiftMeal
-        fields="__all__"
+        fields=('id','meal','shift','date','is_reserved')
 
+    def get_is_reserved(self,obj:ShiftMeal):
+        return Reservation.objects.filter(shift_meal=obj,user=self.context["request"].user).exists()
 
 class UserSerializer(ModelSerializer):
     class Meta:
