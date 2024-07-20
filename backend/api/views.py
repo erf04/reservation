@@ -161,7 +161,7 @@ def reserve_meal(request:Request):
         reservation,created=Reservation.objects.get_or_create(shift_meal=shift_meal,user=request.user,date=now)
         if not created:
             return Response(data={"error":"you have already reserve this shift meal"},status=status.HTTP_306_RESERVED)
-        serialized=ReservationSerializer(reservation,many=False)
+        serialized=ReservationSerializer(reservation,many=False,context={"request":request})
         return Response(data=serialized.data,status=status.HTTP_201_CREATED)
 
     except ShiftMeal.DoesNotExist:
