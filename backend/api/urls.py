@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 urlpatterns = [
-    path('get-menu/',views.filter_meals),
+    path('get-menu/',views.ReservationView.as_view()),
     path('get-reservations/',views.get_all_reservations),
     path('reserve/',views.reserve_meal),
     path('shiftmeal/create/',views.ShiftMealAPIView.as_view()),
