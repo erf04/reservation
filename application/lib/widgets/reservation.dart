@@ -85,7 +85,7 @@ class _ReservePageState extends State<ReservePage> {
         Shift myShift =
             Shift(id: i["shift"]["id"], shiftName: i["shift"]["shift_name"]);
         ShiftMeal temp = ShiftMeal(
-            id: i["id"], date: i["date"], meal: myMeal, shift: myShift);
+            id: i["id"], date: i["date"], meal: myMeal, shift: myShift, isReserved: i["is_reserved"]);
         //print("Success");
         myShiftMeals.add(temp);
       }
@@ -597,6 +597,7 @@ class _ReserveListState extends State<ReserveList> {
                     await reserveFood(shiftMeal[index].id);
                   },
                   style: ElevatedButton.styleFrom(
+                      enableFeedback: !shiftMeal[index].isReserved,
                       minimumSize: Size(MediaQuery.of(context).size.width, 50),
                       backgroundColor: Colors.black26,
                       shape: RoundedRectangleBorder(

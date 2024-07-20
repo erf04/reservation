@@ -23,6 +23,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  int selectedIndex = -1;
   Future<void> deleteReservation(int deletedId) async {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
@@ -84,7 +85,7 @@ class _MainPageState extends State<MainPage> {
         Shift myShift =
             Shift(id: i["shift"]["id"], shiftName: i["shift"]["shift_name"]);
         ShiftMeal temp1 = ShiftMeal(
-            id: i["id"], date: i["date"], meal: myMeal, shift: myShift);
+            id: i["id"], date: i["date"], meal: myMeal, shift: myShift, isReserved: true);
         Reserve temp = Reserve(
             id: j['id'],
             user: User(
@@ -433,35 +434,50 @@ class _MainPageState extends State<MainPage> {
                                         MediaQuery.of(context).size.height / 2,
                                     width: MediaQuery.of(context).size.width,
                                     child: ListView.builder(
-                                      itemCount: snapshot.data!.length,
-                                      itemBuilder: (context, index) {
-                                        return Padding(
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: Container(
-                                            width: MediaQuery.of(context)
-                                                .size
-                                                .width,
-                                            height: 75,
-                                            decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                                color: const Color.fromARGB(255, 242, 200, 145),
-                                                boxShadow: const [
-                                                  BoxShadow(blurRadius: 4)
-                                                ]),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(16.0),
-                                              child: _rowMethod(
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                //print(snapshot.data![index]);
+                                return Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedIndex = index;
+                                      });
+                                    },
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width,
+                                      height: selectedIndex == index
+                                          ? MediaQuery.of(context).size.height *
+                                              (1 / 3)
+                                          : 75,
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          color: const Color.fromARGB(255, 242, 200, 145),
+                                          boxShadow: const [
+                                            BoxShadow(blurRadius: 4)
+                                          ]),
+                                      child: Padding(
+                                        padding: selectedIndex == index
+                                            ? const EdgeInsets.all(32)
+                                            : const EdgeInsets.all(16.0),
+                                        child: selectedIndex == index
+                                            ? _columnMethod(
+                                                snapshot.data!,
+                                                index,
+                                                context,
+                                              )
+                                            : _rowMethod(
                                                 snapshot.data!,
                                                 index,
                                                 context,
                                               ),
-                                            ),
-                                          ),
-                                        );
-                                      },
+                                      ),
                                     ),
+                                  ),
+                                );
+                              }),
                                   );
                                 } else {
                                   return Center(
@@ -520,4 +536,75 @@ class _MainPageState extends State<MainPage> {
       ],
     );
   }
+
+  Column _columnMethod(
+      List<Reserve> reserves, int index, BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              TextButton(
+                  onPressed: () {
+                    setState(() {
+                      if (selectedIndex != index) {
+                        selectedIndex = index;
+                      } else {
+                        selectedIndex = -1;
+                      }
+                    });
+                  },
+                  child: Text(
+                    'Shift : ${reserves[index].shiftMeal.shift.shiftName}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge!
+                        .copyWith(fontSize: 24, fontWeight: FontWeight.bold),
+                  )),
+              TextButton(
+                  onPressed: () {},
+                  child: Text('foods: ${reserves[index].shiftMeal.meal.food.name}',
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          fontSize: 19, fontWeight: FontWeight.w300))),
+              const SizedBox(
+                height: 6,
+              ),
+              Text(
+                  reserves[index].shiftMeal.meal.diet == null
+                      ? 'diet: no diet food available'
+                      : 'diet: ${reserves[index].shiftMeal.meal.diet!.name}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge!
+                      .copyWith(fontSize: 19, fontWeight: FontWeight.w300)),
+              const SizedBox(
+                height: 8,
+              ),
+              Text(
+                  reserves[index].shiftMeal.meal.desert == null
+                      ? 'dessert: no dessert food available'
+                      : 'dessert: ${reserves[index].shiftMeal.meal.desert!.name}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge!
+                      .copyWith(fontSize: 19, fontWeight: FontWeight.w300)),
+              const SizedBox(
+                height: 8,
+              ),
+              Text(reserves[index].date,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge!
+                      .copyWith(fontSize: 19, fontWeight: FontWeight.w300)),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
 }
+

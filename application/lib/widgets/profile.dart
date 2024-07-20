@@ -73,7 +73,7 @@ class _ProfileState extends State<Profile> {
         Shift myShift =
             Shift(id: i["shift"]["id"], shiftName: i["shift"]["shift_name"]);
         ShiftMeal temp = ShiftMeal(
-            id: i["id"], date: i["date"], meal: myMeal, shift: myShift);
+            id: i["id"], date: i["date"], meal: myMeal, shift: myShift ,isReserved: true);
         print("Success");
         myList.add(temp);
       }
