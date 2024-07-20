@@ -30,6 +30,7 @@ class _ReservePageState extends State<ReservePage> {
   String? myShiftName;
   bool selectedDateForMeal = false;
   bool selectedShiftForMeal = false;
+  bool notAvailable = false;
 
   Future<List<ShiftMeal>> getMenu(String? shiftName) async {
     VerifyToken? verifyToken = await TokenManager.verifyAccess(context);
@@ -71,7 +72,7 @@ class _ReservePageState extends State<ReservePage> {
         //print("good1");
         List<Drink> myDrinks = [];
         for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(Drink(name: j["name"]) );
+          myDrinks.add(Drink(name: j["name"]));
         }
         //print("good2");
         Meal myMeal = Meal(
@@ -103,8 +104,12 @@ class _ReservePageState extends State<ReservePage> {
     });
     setState(() {
       selectedValue = value;
-      myShiftName = value;
-      selectedShiftForMeal = true;
+      if (value == 'B') {
+        myShiftName = value;
+        selectedShiftForMeal = true;
+      } else {
+        notAvailable = true;
+      }
     });
   }
 
@@ -151,7 +156,7 @@ class _ReservePageState extends State<ReservePage> {
             decoration: const BoxDecoration(
               //color: Colors.white,
               image: DecorationImage(
-                image: AssetImage('assets/pintrest2.jpg'),
+                image: AssetImage('assets/new7.jpg'),
                 fit: BoxFit
                     .cover, // This ensures the image covers the entire background
               ),
@@ -238,7 +243,38 @@ class _ReservePageState extends State<ReservePage> {
                       0, MediaQuery.of(context).size.height * 0.28, 0, 0),
                   child: foodListBuilder(),
                 )
-              : const Center(child: CircularProgressIndicator())
+              : 
+              notAvailable == true ? 
+                            Center(
+                  child:  AlertDialog(
+              title: const Text('امکان پذیر نیست'),
+              content: Text(
+                "این شیفت در حال حاضر در دسترس نمی باشد",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      notAvailable = false;
+                    });
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            ))
+              :
+              Center(
+                  child: AlertDialog(
+                    title: Text(
+                      'تاریخ و شیفت خود را انتخاب کنید',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium!
+                          .copyWith(fontSize: 20),
+                    ),
+                  ),
+                )
         ])));
   }
 
@@ -409,7 +445,7 @@ class _ReserveListState extends State<ReserveList> {
                                 : 75,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
-                                color: Colors.white60,
+                                color: const Color.fromARGB(255, 242, 200, 145),
                                 boxShadow: const [BoxShadow(blurRadius: 4)]),
                             child: Padding(
                               padding: selectedIndex == index
@@ -498,7 +534,10 @@ class _ReserveListState extends State<ReserveList> {
                             return Container(
                                 margin: const EdgeInsets.fromLTRB(4, 2, 4, 2),
                                 child: Text(
-                                    shiftMeal[index].meal.drink[index1 - 1].name,
+                                    shiftMeal[index]
+                                        .meal
+                                        .drink[index1 - 1]
+                                        .name,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleLarge!

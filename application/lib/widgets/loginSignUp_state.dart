@@ -60,7 +60,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
         Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/pintrest2.jpg'),
+              image: AssetImage('assets/new4.jpg'),
               fit: BoxFit
                   .cover, // This ensures the image covers the entire background
             ),

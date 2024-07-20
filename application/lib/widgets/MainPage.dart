@@ -147,226 +147,71 @@ class _MainPageState extends State<MainPage> {
                     .bodyMedium!
                     .copyWith(fontSize: 25, fontWeight: FontWeight.bold),
               ),
-              IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    CupertinoIcons.mail,
-                    size: 40,
-                    color: Color.fromARGB(255, 2, 16, 43),
-                  )),
+              FutureBuilder<User?>(
+                  future: getProfileForMainPage(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return InkWell(
+                        onTap: () {
+                          FadePageRoute.navigateToNextPage(context, Profile());
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: Colors.deepOrange,
+                          radius: 20,
+                          child: ClipOval(
+                            child: Container(
+                              child: CachedNetworkImage(
+                                  imageUrl:
+                                      'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
+                                  placeholder: (context, url) => const Center(
+                                      child: CircularProgressIndicator()),
+                                  errorWidget: (context, url, error) =>
+                                      Center(child: Icon(Icons.error)),
+                                  fit: BoxFit.cover,
+                                  width: 40,
+                                  height: 40),
+                            ),
+                          ),
+                        ),
+                      );
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else {
+                      return IconButton(
+                          onPressed: () {
+                            FadePageRoute.navigateToNextPage(
+                                context, Profile());
+                          },
+                          icon: Icon(CupertinoIcons.profile_circled));
+                    }
+                  }),
+              // IconButton(
+              //     onPressed: () {},
+              //     icon: const Icon(
+              //       CupertinoIcons.profile_circled,
+              //       size: 40,
+              //       color: Color.fromARGB(255, 2, 16, 43),
+              //     )),
             ],
           ),
           backgroundColor: Colors.white,
         ),
-        body:FutureBuilder<User?>(
-                future: getProfileForMainPage(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: AlertDialog(
-                        title: const Text('Can\'t connect!'),
-                        content: Text(
-                          "Something went wrong while connecting to the server!",
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        actions: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    getProfileForMainPage();
-                                  });
-                                },
-                                child: Text('Try Again!'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    Navigator.of(context)
-                                        .pushReplacement(CupertinoPageRoute(
-                                      builder: (context) => const LoginSignUp(),
-                                    ));
-                                  });
-                                },
-                                child: Text('Go back!'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  } else if (snapshot.hasData) {
-                    return SafeArea(
-                        child: Stack(fit: StackFit.expand, children: [
-                      Container(
-                        decoration: const BoxDecoration(
-                          //color: Colors.white,
-                          image: DecorationImage(
-                            image: AssetImage('assets/pintrest2.jpg'),
-                            fit: BoxFit
-                                .cover, // This ensures the image covers the entire background
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      FadePageRoute.navigateToNextPage(
-                                          context, ReservePage());
-                                    },
-                                    child: Container(
-                                      height: 65,
-                                      width: MediaQuery.of(context).size.width *
-                                              1 /
-                                              2 -
-                                          30,
-                                      decoration: const BoxDecoration(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(12)),
-                                          color: Colors.white38),
-                                      child: Center(
-                                        child: Text(
-                                          'Reserve',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge!
-                                              .copyWith(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(),
-                                  InkWell(
-                                    onTap: () {
-                                      FadePageRoute.navigateToNextPage(
-                                          context, const Profile());
-                                    },
-                                    child: Container(
-                                      height: 65,
-                                      width: MediaQuery.of(context).size.width *
-                                              1 /
-                                              2 -
-                                          30,
-                                      decoration: const BoxDecoration(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(12)),
-                                          color: Colors.white38),
-                                      child: Center(
-                                        child: Text(
-                                          'Profile',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge!
-                                              .copyWith(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      if (snapshot.data!.isSuperVisor) {
-                                        Navigator.of(context)
-                                            .pushReplacement(CupertinoPageRoute(
-                                          builder: (context) =>
-                                              MealCreationPage(),
-                                        ));
-                                      } else {
-                                        setState(() {
-                                          onErrorCreate = true;
-                                        });
-                                      }
-                                    },
-                                    child: Container(
-                                      height: 65,
-                                      width: MediaQuery.of(context).size.width *
-                                              1 /
-                                              2 -
-                                          30,
-                                      decoration: const BoxDecoration(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(12)),
-                                          color: Colors.white38),
-                                      child: Center(
-                                        child: Text(
-                                          'Food Creation',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge!
-                                              .copyWith(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(),
-                                  InkWell(
-                                    onTap: () {},
-                                    child: Container(
-                                      height: 65,
-                                      width: MediaQuery.of(context).size.width *
-                                              1 /
-                                              2 -
-                                          30,
-                                      decoration: const BoxDecoration(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(12)),
-                                          color: Colors.white38),
-                                      child: Center(
-                                        child: Text(
-                                          'Manager Page',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge!
-                                              .copyWith(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Divider(height: 2, color: Colors.white),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                             onErrorCreate
-            ? Center(
+        body: FutureBuilder<User?>(
+          future: getProfileForMainPage(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
                 child: AlertDialog(
-                  title: const Text('No access!'),
+                  title: const Text('Can\'t connect!'),
                   content: Text(
-                    "You are not currently the supervisor!",
+                    "Something went wrong while connecting to the server!",
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   actions: <Widget>[
@@ -376,18 +221,177 @@ class _MainPageState extends State<MainPage> {
                         TextButton(
                           onPressed: () {
                             setState(() {
-                              onErrorCreate = false;
+                              getProfileForMainPage();
                             });
                           },
-                          child: const Text('Try Again!'),
+                          child: Text('Try Again!'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              Navigator.of(context)
+                                  .pushReplacement(CupertinoPageRoute(
+                                builder: (context) => const LoginSignUp(),
+                              ));
+                            });
+                          },
+                          child: Text('Go back!'),
                         ),
                       ],
                     ),
                   ],
                 ),
-              )
-            : 
-                            FutureBuilder<List<Reserve>>(
+              );
+            } else if (snapshot.hasData) {
+              return SafeArea(
+                  child: Stack(fit: StackFit.expand, children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    //color: Colors.white,
+                    image: DecorationImage(
+                      image: AssetImage('assets/new5.jpg'),
+                      fit: BoxFit
+                          .cover, // This ensures the image covers the entire background
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                FadePageRoute.navigateToNextPage(
+                                    context, ReservePage());
+                              },
+                              child: Container(
+                                height: 65,
+                                width: MediaQuery.of(context).size.width - 60,
+                                decoration: const BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(12)),
+                                    color: Colors.white70),
+                                child: Center(
+                                  child: Text(
+                                    'Reserve',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .copyWith(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                print(snapshot.data!.isSuperVisor);
+                                if (snapshot.data!.isSuperVisor) {
+                                  Navigator.of(context)
+                                      .pushReplacement(CupertinoPageRoute(
+                                    builder: (context) => MealCreationPage(),
+                                  ));
+                                } else {
+                                  setState(() {
+                                    onErrorCreate = true;
+                                  });
+                                }
+                              },
+                              child: Container(
+                                height: 65,
+                                width:
+                                    MediaQuery.of(context).size.width * 1 / 2 -
+                                        30,
+                                decoration: const BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(12)),
+                                    color: Colors.white70),
+                                child: Center(
+                                  child: Text(
+                                    'Food Creation',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .copyWith(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(),
+                            InkWell(
+                              onTap: () {},
+                              child: Container(
+                                height: 65,
+                                width:
+                                    MediaQuery.of(context).size.width * 1 / 2 -
+                                        30,
+                                decoration: const BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(12)),
+                                    color: Colors.white70),
+                                child: Center(
+                                  child: Text(
+                                    'Manager Page',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .copyWith(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 2, color: Colors.white),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      onErrorCreate
+                          ? Center(
+                              child: AlertDialog(
+                                title: const Text('No access!'),
+                                content: Text(
+                                  "You are not currently the supervisor!",
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                                actions: <Widget>[
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            onErrorCreate = false;
+                                          });
+                                        },
+                                        child: const Text('Try Again!'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
+                          : FutureBuilder<List<Reserve>>(
                               future: getPendingReservations(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
@@ -441,7 +445,7 @@ class _MainPageState extends State<MainPage> {
                                             decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(16),
-                                                color: Colors.white60,
+                                                color: const Color.fromARGB(255, 242, 200, 145),
                                                 boxShadow: const [
                                                   BoxShadow(blurRadius: 4)
                                                 ]),
@@ -472,20 +476,20 @@ class _MainPageState extends State<MainPage> {
                                 }
                               },
                             )
-                          ],
-                        ),
-                      )
-                    ]));
-                  } else {
-                    return Center(
-                        child: Text("NO DATA",
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge!
-                                .copyWith(color: Colors.white)));
-                  }
-                },
-              ));
+                    ],
+                  ),
+                )
+              ]));
+            } else {
+              return Center(
+                  child: Text("NO DATA",
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge!
+                          .copyWith(color: Colors.white)));
+            }
+          },
+        ));
   }
 
   Row _rowMethod(List<Reserve> reserves, int index, BuildContext context) {

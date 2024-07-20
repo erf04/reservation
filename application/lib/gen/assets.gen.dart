@@ -16,6 +16,10 @@ class Assets {
       AssetGenImage('assets/cameraIcon.jpg');
   static const AssetGenImage download = AssetGenImage('assets/download.jpg');
   static const AssetGenImage images = AssetGenImage('assets/images.jpg');
+  static const AssetGenImage new1 = AssetGenImage('assets/new1.jpg');
+  static const AssetGenImage new2 = AssetGenImage('assets/new2.jpg');
+  static const AssetGenImage new3 = AssetGenImage('assets/new3.jpg');
+  static const AssetGenImage new4 = AssetGenImage('assets/new4.jpg');
   static const AssetGenImage pintrest1 = AssetGenImage('assets/pintrest1.jpg');
   static const AssetGenImage pintrest2 = AssetGenImage('assets/pintrest2.jpg');
   static const AssetGenImage pintrest3 = AssetGenImage('assets/pintrest3.jpg');
@@ -27,6 +31,10 @@ class Assets {
         cameraIcon,
         download,
         images,
+        new1,
+        new2,
+        new3,
+        new4,
         pintrest1,
         pintrest2,
         pintrest3,

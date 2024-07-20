@@ -127,7 +127,7 @@ class _ProfileState extends State<Profile> {
                   decoration: const BoxDecoration(
                     //color: Colors.white,
                     image: DecorationImage(
-                      image: AssetImage('assets/pintrest2.jpg'),
+                      image: AssetImage('assets/new4.jpg'),
                       fit: BoxFit
                           .cover, // This ensures the image covers the entire background
                     ),
@@ -135,20 +135,6 @@ class _ProfileState extends State<Profile> {
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
                         0, 0, 0, MediaQuery.of(context).size.height * 0.7),
-                    child: Container(
-                        decoration: const BoxDecoration(
-                            // image: DecorationImage(
-                            //   image: AssetImage('assets/pintrest2.jpg'),
-                            //   fit: BoxFit
-                            //       .cover, // This ensures the image covers the entire background
-                            // ),
-                            color: Colors.white,
-                            boxShadow: const [BoxShadow(blurRadius: 2)],
-                            borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(24),
-                                bottomRight: Radius.circular(24))),
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height * 0.35),
                   ),
                 ),
                 Column(
@@ -167,7 +153,7 @@ class _ProfileState extends State<Profile> {
                                   imageUrl:
                                       'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
                                   placeholder: (context, url) => const Center(
-                                      child: CircularProgressIndicator()),
+                                      child: Center(child: CircularProgressIndicator())),
                                   errorWidget: (context, url, error) =>
                                       Center(child: Icon(Icons.error)),
                                   fit: BoxFit.cover,
@@ -436,15 +422,47 @@ class _ProfileState extends State<Profile> {
                 .bodyMedium!
                 .copyWith(fontSize: 25, fontWeight: FontWeight.bold),
           ),
-          IconButton(
-              onPressed: () {
-                //Navigator.pushReplacement(context, MyHomePage(title: ''));
-              },
-              icon: const Icon(
-                CupertinoIcons.mail,
-                size: 40,
-                color: Color.fromARGB(255, 2, 16, 43),
-              )),
+              FutureBuilder<User?>(
+                  future: getProfile(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return InkWell(
+                        onTap: () {
+                          FadePageRoute.navigateToNextPage(context, Profile());
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: Colors.deepOrange,
+                          radius: 20,
+                          child: ClipOval(
+                            child: Container(
+                              child: CachedNetworkImage(
+                                  imageUrl:
+                                      'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
+                                  placeholder: (context, url) => const Center(
+                                      child: Center(child: CircularProgressIndicator())),
+                                  errorWidget: (context, url, error) =>
+                                      Center(child: Icon(Icons.error)),
+                                  fit: BoxFit.cover,
+                                  width: 40,
+                                  height: 40),
+                            ),
+                          ),
+                        ),
+                      );
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return Center(
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    } else {
+                      return IconButton(
+                          onPressed: () {
+                            FadePageRoute.navigateToNextPage(
+                                context, Profile());
+                          },
+                          icon: Icon(CupertinoIcons.profile_circled));
+                    }
+                  }),
         ],
       ),
       backgroundColor: Colors.white,
@@ -471,7 +489,7 @@ class _ReserveHistoryState extends State<ReserveHistory> {
             decoration: const BoxDecoration(
               //color: Colors.white,
               image: DecorationImage(
-                image: AssetImage('assets/pintrest3.jpg'),
+                image: AssetImage('assets/new4.jpg'),
                 fit: BoxFit
                     .cover, // This ensures the image covers the entire background
               ),
@@ -503,7 +521,7 @@ class _ReserveHistoryState extends State<ReserveHistory> {
                       );
                     } else if (snapshot.connectionState ==
                         ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
+                      return Center(child: const CircularProgressIndicator());
                     } else if (snapshot.hasData) {
                       //print("HAYAAAAAAAAAAAAAaaa");
                       //print(snapshot.data!.length);
@@ -540,7 +558,7 @@ class _ReserveHistoryState extends State<ReserveHistory> {
                                       decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(16),
-                                          color: Colors.white60,
+                                          color: const Color.fromARGB(255, 242, 200, 145),
                                           boxShadow: const [
                                             BoxShadow(blurRadius: 4)
                                           ]),
