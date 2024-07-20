@@ -61,6 +61,16 @@ class ReservationSerializer(ModelSerializer):
         model = Reservation
         fields=('id','user','shift_meal','date')
 
+        def to_representation(self, instance:Reservation):
+            # Get the representation of the reservation instance
+            representation = super().to_representation(instance)
+            
+            # Re-serialize the shift_meal field with context
+            shift_meal_serializer = ShiftMealSerializer(instance.shift_meal, context=self.context)
+            representation['shift_meal'] = shift_meal_serializer.data
+            
+            return representation
+
 
 
 

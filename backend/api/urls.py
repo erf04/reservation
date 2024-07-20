@@ -9,7 +9,7 @@ urlpatterns = [
     path('profile/',views.ProfileAPIView.as_view()),
     path('email/',views.send_test_email),
     path('delete-reservation/<int:id>/',views.delete_reservation),
-    path('pending-list/',views.get_pending_reservations),
+    path('pending-list/',views.ReservationView.as_view()),
     path('sms/',views.send_sms),
     path('password/reset/',views.PasswordResetRequestView.as_view()),
     path('password/reset/confirm/',views.PasswordResetConfirmView.as_view()),
