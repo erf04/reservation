@@ -86,6 +86,22 @@ class ReservationView(APIView):
         serialized=ShiftMealSerializer(meals,many=True,context={"request":request})
         return Response(serialized.data,status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        manual_parameters=[token],
+        responses={
+            200:ReservationSerializer(many=True)
+        }
+    )
+
+    @permission_classes([permissions.IsAuthenticated])
+    def get(self,request:Request):
+        now=jdatetime.datetime.today()
+        reservations=Reservation.objects.filter(user=request.user,date__gte=now)
+        serialized=ReservationSerializer(reservations,many=True,context={"request":request})
+        return Response(data=serialized.data,status=status.HTTP_200_OK)
+    
+
+
 @swagger_auto_schema(
         method='get',
         operation_description="get all reserved shift meals ever",
@@ -98,10 +114,10 @@ class ReservationView(APIView):
 )
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
-def get_all_reservations(requrest:Request):
-    my_user=requrest.user
+def get_all_reservations(request:Request):
+    my_user=request.user
     shift_meals=ShiftMeal.objects.filter(reservations__user=my_user)
-    serialized=ShiftMealSerializer(shift_meals,many=True)
+    serialized=ShiftMealSerializer(shift_meals,many=True,context={"request":request})
     return Response(serialized.data)
 
 
@@ -166,20 +182,7 @@ def delete_reservation(request:Request,id:int):
     except Reservation.DoesNotExist:
         return Response(data={"error":f"no reservation with id {id}"},status=status.HTTP_406_NOT_ACCEPTABLE)
     
-@swagger_auto_schema(
-        method="GET",
-        manual_parameters=[token],
-        responses={
-            200:ReservationSerializer(many=True)
-        }
-)
-@api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
-def get_pending_reservations(request:Request):
-    now=jdatetime.datetime.today()
-    reservations=Reservation.objects.filter(user=request.user,date__gte=now)
-    serialized=ReservationSerializer(reservations,many=True)
-    return Response(data=serialized.data,status=status.HTTP_200_OK)
+
     
 
 
