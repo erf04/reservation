@@ -347,6 +347,15 @@ class MealAPIView(APIView):
         # print(food_types)
 
 
+def delete_meal(request:Request,id:int):
+    try:
+        meal=Meal.objects.get(id)
+        meal.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except Meal.DoesNotExist:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    
+    
 class ProfileAPIView(APIView):
     permission_classes=[IsUserOrReadOnly]
     @swagger_auto_schema(
