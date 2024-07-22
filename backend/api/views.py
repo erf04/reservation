@@ -244,7 +244,7 @@ class ShiftMealAPIView(APIView):
             shift_meal,created=ShiftMeal.objects.get_or_create(shift=shift,date=ISO_to_gregorian(date),meal=meal)
             if not created:
                 return Response(data={"error":"you have already create this shift meal"},status=status.HTTP_306_RESERVED)
-            serialized=ShiftMealSerializer(shift_meal,many=False)
+            serialized=ShiftMealSerializer(shift_meal,many=False,context={"request":request})
             return Response(data=serialized.data,status=status.HTTP_201_CREATED)
         except Meal.DoesNotExist:
             return Response(data={"error":f"there no existing meal with id {meal_id}"},status=status.HTTP_204_NO_CONTENT)
