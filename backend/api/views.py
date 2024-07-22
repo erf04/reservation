@@ -5,7 +5,7 @@ from rest_framework import permissions
 from .serializers import (MealSerializer,ShiftMealSerializer,ReservationSerializer,
 ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer
 ,CombinedFoodCreationSerializer,UserSerializer,PasswordResetRequestSerializer,PasswordResetConfirmSerializer,
-DrinkSerializer)
+DrinkSerializer,MealCreationSerializer)
 from rest_framework.decorators import api_view,permission_classes
 from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal,User,Drink
 import jdatetime
@@ -316,21 +316,10 @@ class MealAPIView(APIView):
             }
     )
     def post(self,request:Request,*args,**kwargs):
-        food1_id=request.data.get('food1-id')
-        food2_id=request.data.get('food2-id')
-        # food_type=request.data.get('food-type')
-        daily_meal=request.data.get('daily-meal')
-        diet_id=request.data.get('diet-id')
-        dessert_id=request.data.get('dessert-id')
-        if not food1_id or not food2_id  or not daily_meal:
-            return Response({"error": "food-name or food-type or daily-meal is required."}, status=status.HTTP_400_BAD_REQUEST)
-        food1=Food.objects.get(id=food1_id)
-        food2=Food.objects.get(id=food2_id)
-        meal,created=Meal.objects.get_or_create(food1=food1,food2=food2,diet__id=diet_id,dessert__id=dessert_id,daily_meal=daily_meal)
-        if not created:
-            return Response(data={"error":f"you have already create this meal and its id is {meal.id}"},status=status.HTTP_306_RESERVED)
-        serialized=MealSerializer(meal,many=False)
-        return Response(serialized.data,status=status.HTTP_201_CREATED)
+        serializer=MealCreationSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response(data=serializer.data,status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
 
     @swagger_auto_schema(

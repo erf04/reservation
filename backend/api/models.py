@@ -120,12 +120,23 @@ class DailyMeal(models.TextChoices):
     DINNER="شام","شام"
 
 
+class Drink(models.Model):
+    name=models.CharField(max_length=100,verbose_name="نام")
+    
+
+    class Meta:
+        verbose_name="نوشیدنی"
+        verbose_name_plural="نوشیدنی ها"
+
+
+
 
 class Meal(models.Model):
     food=models.ForeignKey(Food,on_delete=models.CASCADE,verbose_name="غذا",related_name="meals")
     diet=models.ForeignKey(Food,on_delete=models.CASCADE,related_name="diet_meals",null=True,blank=True,verbose_name="غذای رژیمی")
     dessert=models.ForeignKey(Food,on_delete=models.CASCADE,related_name="dessert_meals",null=True,blank=True,verbose_name="دسر")
     daily_meal=models.CharField(max_length=50,choices=DailyMeal.choices,verbose_name="وعده غذا")
+    drinks=models.ManyToManyField(Drink,verbose_name="نوشیدنی ها")
 
     class Meta:
         verbose_name="وعده"
@@ -135,13 +146,6 @@ class Meal(models.Model):
         return f"food:{self.food}"
 
 
-class Drink(models.Model):
-    name=models.CharField(max_length=100,verbose_name="نام")
-    meal=models.ForeignKey(Meal,related_name="drinks",on_delete=models.CASCADE,verbose_name="وعده")
-
-    class Meta:
-        verbose_name="نوشیدنی"
-        verbose_name_plural="نوشیدنی ها"
 
 
 
