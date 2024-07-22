@@ -143,6 +143,12 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid email or code.")
         
         return data
+    
+
+class DrinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =Drink
+        fields = ('id','name')
 
     
 

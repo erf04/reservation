@@ -4,9 +4,10 @@ from rest_framework import status
 from rest_framework import permissions
 from .serializers import (MealSerializer,ShiftMealSerializer,ReservationSerializer,
 ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer
-,CombinedFoodCreationSerializer,UserSerializer,PasswordResetRequestSerializer,PasswordResetConfirmSerializer)
+,CombinedFoodCreationSerializer,UserSerializer,PasswordResetRequestSerializer,PasswordResetConfirmSerializer,
+DrinkSerializer)
 from rest_framework.decorators import api_view,permission_classes
-from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal,User
+from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal,User,Drink
 import jdatetime
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
@@ -26,6 +27,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.template.loader import render_to_string
 from django.utils.crypto import get_random_string
+from django.db.models import Q
 
 
 def ISO_to_gregorian(date:str):
@@ -339,14 +341,19 @@ class MealAPIView(APIView):
             }
     )
     def get(self,request:Request,*args,**kwargs):
-        foods=Food.objects.all()
-        food_types=[food_type.label for food_type in FoodType]
-        daily_meals=[daily_meal.label for daily_meal in DailyMeal]
+        foods=Food.objects.exclude(Q(type="دسر") | Q( type="غذای رژیمی"))
+        diets=Food.objects.filter(type="غذای رژیمی")
+        desserts=Food.objects.filter(type="دسر")
+        drinks=Drink.objects.all()
         foods_serialized=FoodSerializer(foods,many=True)
+        diets_serialized=FoodSerializer(diets,many=True)
+        desserts_serialized=FoodSerializer(desserts,many=True)
+        drinks_serialized=DrinkSerializer(drinks,many=True)
         return Response(data={
             "foods":foods_serialized.data,
-            "food_types":food_types,
-            "daily_meals":daily_meals  
+            "diets":diets_serialized.data,
+            "desserts":desserts_serialized.data,
+            "drinks":drinks_serialized.data  
         },status=status.HTTP_200_OK)
         # print(food_types)
 
@@ -491,6 +498,17 @@ class PasswordResetConfirmView(APIView):
             return Response({"detail": "Password has been reset."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class FoodView(APIView):
+    permission_classes=[permissions.IsAuthenticated,IsSupervisorOrReadOnly]
+    def post(self,request:Request):
+        serializer = FoodSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 
