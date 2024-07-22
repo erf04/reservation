@@ -14,6 +14,7 @@ import 'package:application/widgets/MainPage.dart';
 import 'package:application/widgets/SoftenPageTransition.dart';
 import 'package:application/widgets/profile.dart';
 import 'package:application/widgets/reserveFood.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:choice/choice.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,6 +32,23 @@ class _ReservePageState extends State<ReservePage> {
   bool selectedDateForMeal = false;
   bool selectedShiftForMeal = false;
   bool notAvailable = false;
+
+  Future<User?> getProfileForMainPage() async {
+    VerifyToken? myVerify = await TokenManager.verifyAccess(context);
+    if (myVerify == VerifyToken.verified) {
+      String? myAccess = await TokenManager.getAccessToken();
+      //print(myAccess);
+      final response = await HttpClient.instance.get("api/profile/",
+          options: Options(headers: {"Authorization": "JWT $myAccess"}));
+      User myUser = User(
+          isShiftManager: response.data["is_shift_manager"],
+          isSuperVisor: response.data["is_supervisor"],
+          id: response.data["id"],
+          userName: response.data["username"],
+          profilePhoto: response.data["profile"]);
+      return myUser;
+    }
+  }
 
   Future<List<ShiftMeal>> getMenu(String? shiftName) async {
     VerifyToken? verifyToken = await TokenManager.verifyAccess(context);
@@ -85,7 +103,11 @@ class _ReservePageState extends State<ReservePage> {
         Shift myShift =
             Shift(id: i["shift"]["id"], shiftName: i["shift"]["shift_name"]);
         ShiftMeal temp = ShiftMeal(
-            id: i["id"], date: i["date"], meal: myMeal, shift: myShift, isReserved: i["is_reserved"]);
+            id: i["id"],
+            date: i["date"],
+            meal: myMeal,
+            shift: myShift,
+            isReserved: i["is_reserved"]);
         //print("Success");
         myShiftMeals.add(temp);
       }
@@ -137,15 +159,47 @@ class _ReservePageState extends State<ReservePage> {
                     .bodyMedium!
                     .copyWith(fontSize: 25, fontWeight: FontWeight.bold),
               ),
-              IconButton(
-                  onPressed: () {
-                    //Navigator.pushReplacement(context, MyHomePage(title: ''));
-                  },
-                  icon: const Icon(
-                    CupertinoIcons.mail,
-                    size: 40,
-                    color: Color.fromARGB(255, 2, 16, 43),
-                  )),
+              FutureBuilder<User?>(
+                  future: getProfileForMainPage(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return InkWell(
+                        onTap: () {
+                          FadePageRoute.navigateToNextPage(context, Profile());
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: Colors.deepOrange,
+                          radius: 20,
+                          child: ClipOval(
+                            child: Container(
+                              child: CachedNetworkImage(
+                                  imageUrl:
+                                      'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
+                                  placeholder: (context, url) => const Center(
+                                      child: CircularProgressIndicator()),
+                                  errorWidget: (context, url, error) =>
+                                      Center(child: Icon(Icons.error)),
+                                  fit: BoxFit.cover,
+                                  width: 40,
+                                  height: 40),
+                            ),
+                          ),
+                        ),
+                      );
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else {
+                      return IconButton(
+                          onPressed: () {
+                            FadePageRoute.navigateToNextPage(
+                                context, Profile());
+                          },
+                          icon: Icon(CupertinoIcons.profile_circled));
+                    }
+                  }),
             ],
           ),
           backgroundColor: Colors.white,
@@ -243,38 +297,36 @@ class _ReservePageState extends State<ReservePage> {
                       0, MediaQuery.of(context).size.height * 0.28, 0, 0),
                   child: foodListBuilder(),
                 )
-              : 
-              notAvailable == true ? 
-                            Center(
-                  child:  AlertDialog(
-              title: const Text('امکان پذیر نیست'),
-              content: Text(
-                "این شیفت در حال حاضر در دسترس نمی باشد",
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      notAvailable = false;
-                    });
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            ))
-              :
-              Center(
-                  child: AlertDialog(
-                    title: Text(
-                      'تاریخ و شیفت خود را انتخاب کنید',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium!
-                          .copyWith(fontSize: 20),
-                    ),
-                  ),
-                )
+              : notAvailable == true
+                  ? Center(
+                      child: AlertDialog(
+                      title: const Text('امکان پذیر نیست'),
+                      content: Text(
+                        "این شیفت در حال حاضر در دسترس نمی باشد",
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              notAvailable = false;
+                            });
+                          },
+                          child: Text('OK'),
+                        ),
+                      ],
+                    ))
+                  : Center(
+                      child: AlertDialog(
+                        title: Text(
+                          'تاریخ و شیفت خود را انتخاب کنید',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium!
+                              .copyWith(fontSize: 20),
+                        ),
+                      ),
+                    )
         ])));
   }
 
@@ -302,7 +354,10 @@ class _ReservePageState extends State<ReservePage> {
                 ),
               );
             }
-            return ReserveList(myMeal: snapshot.data!);
+            return ReserveList(
+              myMeal: snapshot.data!,
+              myPage: this,
+            );
           } else {
             return const Center(
               child: SizedBox(height: 10, child: Text("Something went wrong!")),
@@ -335,17 +390,19 @@ class ReserveList extends StatefulWidget {
   ReserveList({
     Key? key,
     required this.myMeal,
+    required this.myPage,
   }) : super(key: key);
   final List<ShiftMeal> myMeal;
+  final _ReservePageState myPage;
   @override
-  State<ReserveList> createState() => _ReserveListState(myList: myMeal);
+  State<ReserveList> createState() => _ReserveListState(myList: myMeal, myPage);
 }
 
 class _ReserveListState extends State<ReserveList> {
   int selectedIndex = -1;
   final List<ShiftMeal> myList;
-
-  _ReserveListState({required this.myList});
+  final _ReservePageState myPage;
+  _ReserveListState(this.myPage, {required this.myList});
   bool success = false;
   bool error = false;
   Future<void> reserveFood(int shiftMealId) async {
@@ -594,12 +651,25 @@ class _ReserveListState extends State<ReserveList> {
               ),
               ElevatedButton(
                   onPressed: () async {
-                    await reserveFood(shiftMeal[index].id);
+                    if (!shiftMeal[index].isReserved) {
+                      setState(() async {
+                        await reserveFood(shiftMeal[index].id);
+                        for (var i in shiftMeal) {
+                          if (i.isReserved &&
+                              i.meal.dailyMeal ==
+                                  shiftMeal[index].meal.dailyMeal) {
+                            i.isReserved = false;
+                          }
+                        }
+                        shiftMeal[index].isReserved = true;
+                      });
+                    }
                   },
                   style: ElevatedButton.styleFrom(
-                      enableFeedback: !shiftMeal[index].isReserved,
                       minimumSize: Size(MediaQuery.of(context).size.width, 50),
-                      backgroundColor: Colors.black26,
+                      backgroundColor: shiftMeal[index].isReserved
+                          ? Colors.white24
+                          : Colors.black26,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16))),
                   child: Text("Reserve",
