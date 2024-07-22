@@ -1,3 +1,4 @@
+import 'package:application/design/food.dart';
 import 'package:application/design/meal.dart';
 import 'package:application/design/user.dart';
 import 'package:application/repository/HttpClient.dart';
@@ -22,7 +23,6 @@ class MealCreationPage extends StatefulWidget {
 
 class _MealCreationPageState extends State<MealCreationPage> {
   List<String> shifts = ['A', 'B', 'C', 'D'];
-  List<Meal> meals = [];
   String? selectedShift;
   List<Meal?> selectedMeals = [];
   String? selectedDate;
@@ -34,8 +34,11 @@ class _MealCreationPageState extends State<MealCreationPage> {
   bool selectedLaunch = false;
   bool selectedDinner = false;
   bool selectedCreateNew = false;
-  List<Meal> _selectedLunchMeals = [];
-  List<Meal> _selectedDinnerMeals = [];
+  List<Food> food = [];
+  List<Food> diet = [];
+  List<Food> dessert = [];
+  List<Drink> drinks = [];
+
   @override
   void initState() {
     super.initState();
@@ -46,13 +49,16 @@ class _MealCreationPageState extends State<MealCreationPage> {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
-      final response = await HttpClient.instance.get('api/shiftmeal/create/',
+      final response = await HttpClient.instance.get('api/meal/create/',
           options: Options(headers: {'Authorization': 'JWT $myAccess'}));
       print(response.data);
       if (response.statusCode == 200) {
         setState(() {
-          for (var i in response.data['meals']) {
-            meals.add(Meal.fromJson(i));
+          for (var i in response.data['foods']) {
+            food.add(Food.fromJson(i));
+          }
+          for (var i in response.data['foods']) {
+            food.add(Food.fromJson(i));
           }
         });
       } else {
@@ -136,7 +142,7 @@ class _MealCreationPageState extends State<MealCreationPage> {
                   color: Color.fromARGB(255, 2, 16, 43),
                 )),
             Text(
-              'ایجاد وعده',
+              'ایجاد وعده جدید',
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium!
@@ -201,115 +207,6 @@ class _MealCreationPageState extends State<MealCreationPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Container(
-                          width: MediaQuery.of(context).size.width / 2 - 25,
-                          child: Card(
-                            color: Colors.white38!.withOpacity(0.8),
-                            margin: EdgeInsets.all(0),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'انتخاب شیفت',
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 18),
-                                  ),
-                                  SizedBox(
-                                    height: 8,
-                                  ),
-                                  Center(
-                                    child: DropdownButton<String>(
-                                      dropdownColor:
-                                          Color.fromARGB(255, 237, 193, 115),
-                                      hint: Text('شیفت'),
-                                      value: selectedShift,
-                                      onChanged: (String? newValue) {
-                                        setState(() {
-                                          selectedShift = newValue;
-                                        });
-                                      },
-                                      items: shifts
-                                          .map<DropdownMenuItem<String>>(
-                                              (String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value,
-                                              style: TextStyle(
-                                                  color: Colors.black)),
-                                        );
-                                      }).toList(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Container(
-                          width: MediaQuery.of(context).size.width / 2 - 25,
-                          child: Card(
-                            color: Colors.white38!.withOpacity(0.8),
-                            margin: EdgeInsets.all(0),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'انتخاب تاریخ',
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 18),
-                                  ),
-                                  SizedBox(
-                                    height: 8,
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.black26,
-                                        fixedSize: Size(
-                                            MediaQuery.of(context).size.width,
-                                            10)),
-                                    onPressed: () async {
-                                      Jalali? pickedDate =
-                                          await showPersianDatePicker(
-                                        context: context,
-                                        initialDate: Jalali.now(),
-                                        firstDate: Jalali(1385, 8),
-                                        lastDate: Jalali(1450, 9),
-                                      );
-                                      if (pickedDate != null) {
-                                        setState(() {
-                                          _selectedDate = pickedDate;
-                                          selectedDate =
-                                              pickedDate.formatCompactDate();
-                                        });
-                                      }
-                                    },
-                                    child: Text(
-                                      selectedDate == null
-                                          ? 'تاریخ'
-                                          : selectedDate!,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium!
-                                          .copyWith(color: Colors.white),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                     SizedBox(height: 20),
                     success
                         ? Padding(
@@ -341,6 +238,12 @@ class _MealCreationPageState extends State<MealCreationPage> {
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  SizedBox(height: 16),
+                                  _buildMealSection(
+                                      'ناهار', _selectedLunchMeals),
+                                  SizedBox(height: 16),
+                                  _buildMealSection(
+                                      'شام', _selectedDinnerMeals),
                                   SizedBox(height: 16),
                                   _buildMealSection(
                                       'ناهار', _selectedLunchMeals),
@@ -459,86 +362,9 @@ class _MealCreationPageState extends State<MealCreationPage> {
               },
               child: Text('بازگشت'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context,
-                    null); // Returning null to indicate creation of new meal
-              },
-              child: TextButton(
-                  onPressed: () => _createNewMeal(),
-                  child: Text('وعده جدید')),
-            ),
           ],
         );
       },
     );
   }
 }
-
-//   List<String> choices = ['ناهار', 'شام'];
-//   String? selectedValue;
-
-//   void setSelectedValue(String? value) {
-//     setState(() {
-//       selectedValue = value;
-//     });
-//   }
-
-//   Widget _createNewMeal() {
-//     selectedValue = this.choices[0];
-//     TextEditingController foodNameController = TextEditingController();
-//     List<Meal> mySelectedMeals = []; 
-
-//     return AlertDialog(
-//       title: Text('غذای جدید'),
-//       content: Container(
-//         child: Column(
-//           children: [
-//             Row(
-//               children: [
-//                 TextField(
-//                   controller: foodNameController,
-//                   decoration: InputDecoration(
-//                       label: Text('نام غذای جدید'),
-//                       hintText: 'optional'),
-//                 ),
-//                 Choice<String>.inline(
-//                   clearable: false,
-//                   value: ChoiceSingle.value(selectedValue),
-//                   onChanged: ChoiceSingle.onChanged(setSelectedValue),
-//                   itemCount: choices.length,
-//                   itemBuilder: (state, i) {
-//                     return ChoiceChip(
-//                       selected: state.selected(choices[i]),
-//                       onSelected: state.onSelected(choices[i]),
-//                       label: Text(choices[i]),
-//                     );
-//                   },
-//                   listBuilder: ChoiceList.createScrollable(
-//                     spacing: 10,
-//                     padding: const EdgeInsets.symmetric(
-//                       horizontal: 20,
-//                       vertical: 25,
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//             TextField(
-//               controller: foodNameController,
-//               decoration: InputDecoration(
-//                   label: Text('نام رژیمی جدید'),
-//                   hintText: 'optional'),
-//               ),
-//               TextField(
-//                 controller: foodNameController,
-//                 decoration: InputDecoration(
-//                     label: Text('نام دسر جدید'),
-//                   hintText: 'optional'),
-//               ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
