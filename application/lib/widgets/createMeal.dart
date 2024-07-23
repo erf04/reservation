@@ -11,6 +11,7 @@ import 'package:choice/choice.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
@@ -49,10 +50,11 @@ class _MealCreationPageState extends State<MealCreationPage> {
       String? myAccess = await TokenManager.getAccessToken();
       final response = await HttpClient.instance.get('api/shiftmeal/create/',
           options: Options(headers: {'Authorization': 'JWT $myAccess'}));
-      print(response.data);
+      //print(response.data);
       if (response.statusCode == 200) {
         setState(() {
           for (var i in response.data['meals']) {
+            print(i);
             meals.add(Meal.fromJson(i));
           }
         });
@@ -63,6 +65,25 @@ class _MealCreationPageState extends State<MealCreationPage> {
           } else {
             internetError = true;
           }
+        });
+      }
+    }
+  }
+
+  Future<void> deleteData(Meal meal) async {
+    VerifyToken? myVerify = await TokenManager.verifyAccess(context);
+    if (myVerify == VerifyToken.verified) {
+      String? myAccess = await TokenManager.getAccessToken();
+      final response = await HttpClient.instance.delete(
+          'api/meal/delete/${meal.id}/',
+          options: Options(headers: {'Authorization': 'JWT $myAccess'}));
+      if (response.statusCode == 204) {
+        setState(() {
+          meals.remove(meal);
+        });
+      } else {
+        setState(() {
+          internetError = true;
         });
       }
     }
@@ -355,8 +376,8 @@ class _MealCreationPageState extends State<MealCreationPage> {
                         backgroundColor: Colors.white70,
                         minimumSize:
                             Size(MediaQuery.of(context).size.width * 0.8, 50),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 15, vertical: 15),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                       ),
                       onPressed: () async {
                         if (_selectedDate != null &&
@@ -446,8 +467,21 @@ class _MealCreationPageState extends State<MealCreationPage> {
               shrinkWrap: true,
               children: myMeals
                   .map((meal) => ListTile(
-                        title: Text(
-                            '${meal.food.type} ${meal.food.name}${meal.diet != null ? notEmpty : emptyString}${meal.diet != null ? meal.diet!.name : emptyString}${meal.desert != null ? notEmpty : emptyString}${meal.desert != null ? meal.desert!.name : emptyString}'),
+                        title: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                  '${meal.food.type} ${meal.food.name}${meal.diet != null ? notEmpty : emptyString}${meal.diet != null ? meal.diet!.name : emptyString}${meal.desert != null ? notEmpty : emptyString}${meal.desert != null ? meal.desert!.name : emptyString}'),
+                              IconButton(
+                                  onPressed: () {
+                                    this.deleteData(meal);
+                                  },
+                                  icon: Icon(CupertinoIcons.trash))
+                            ],
+                          ),
+                        ),
                         onTap: () {
                           Navigator.pop(
                               context, meal); // Return the Meal object

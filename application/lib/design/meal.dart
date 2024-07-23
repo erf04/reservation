@@ -39,8 +39,8 @@ class Meal {
     return Meal(
         id: json['id'],
         food: Food.fromJson(json['food']),
-        diet: Food.fromJson(json['diet']),
-        desert: Food.fromJson(json['dessert']),
+        diet: json['diet']!=null ? Food.fromJson(json['diet']) : null,
+        desert: json['dessert']!=null ? Food.fromJson(json['dessert']) : null,
         dailyMeal: json['daily_meal'],
         drink: myDrinks);
   }
