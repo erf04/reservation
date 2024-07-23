@@ -5,6 +5,7 @@ import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/tokenManager.dart';
 import 'package:application/widgets/MainPage.dart';
 import 'package:application/widgets/SoftenPageTransition.dart';
+import 'package:application/widgets/createMeal.dart';
 import 'package:application/widgets/profile.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:choice/choice.dart';
@@ -16,15 +17,17 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 
-class MealCreationPage extends StatefulWidget {
+class MealSelectionPage extends StatefulWidget {
   @override
-  _MealCreationPageState createState() => _MealCreationPageState();
+  _MealSelectionPageState createState() => _MealSelectionPageState();
 }
 
-class _MealCreationPageState extends State<MealCreationPage> {
-  List<String> shifts = ['A', 'B', 'C', 'D'];
+class _MealSelectionPageState extends State<MealSelectionPage> {
   String? selectedShift;
-  List<Meal?> selectedMeals = [];
+  Food? selectedFood;
+  Food? selectedDessert;
+  Food? selectedDiet;
+  List<Drink> selectedDrinks = [];
   String? selectedDate;
   var _selectedDate;
   int selectedIndex = -1;
@@ -38,6 +41,10 @@ class _MealCreationPageState extends State<MealCreationPage> {
   List<Food> diet = [];
   List<Food> dessert = [];
   List<Drink> drinks = [];
+  List<Food> myfood = [];
+  List<Food> mydiet = [];
+  List<Food> mydessert = [];
+  List<Drink> mydrinks = [];
 
   @override
   void initState() {
@@ -57,8 +64,14 @@ class _MealCreationPageState extends State<MealCreationPage> {
           for (var i in response.data['foods']) {
             food.add(Food.fromJson(i));
           }
-          for (var i in response.data['foods']) {
-            food.add(Food.fromJson(i));
+          for (var i in response.data['diets']) {
+            diet.add(Food.fromJson(i));
+          }
+          for (var i in response.data['desserts']) {
+            dessert.add(Food.fromJson(i));
+          }
+          for (var i in response.data['drinks']) {
+            drinks.add(Drink.fromJson(i));
           }
         });
       } else {
@@ -90,13 +103,13 @@ class _MealCreationPageState extends State<MealCreationPage> {
     }
   }
 
+
+  List<String> choices = ['ناهار', 'شام'];
+
   Future<void> submitData() async {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
-      selectedDate = selectedDate!.replaceAll('/', '-');
-      //print("WHAT THE FUCK");
-      print(selectedMeals);
       for (var i in selectedMeals) {
         final response = await HttpClient.instance.post(
           'api/shiftmeal/create/',
@@ -118,10 +131,19 @@ class _MealCreationPageState extends State<MealCreationPage> {
       setState(() {
         success = true;
         selectedDate = null;
-        selectedMeals = [];
         selectedShift = null;
+        selectedDessert = null;
+        selectedFood = null;
+        selectedDiet = null;
+        selectedDrinks = [];
       });
     }
+  }
+  String? selectedValue;
+  void setSelectedValue(String? value) {
+    setState(() {
+      selectedValue = value;
+    });
   }
 
   @override
@@ -134,7 +156,7 @@ class _MealCreationPageState extends State<MealCreationPage> {
           children: [
             IconButton(
                 onPressed: () {
-                  FadePageRoute.navigateToNextPage(context, MainPage());
+                  FadePageRoute.navigateToNextPage(context, MealCreationPage());
                 },
                 icon: const Icon(
                   CupertinoIcons.back,
@@ -239,17 +261,35 @@ class _MealCreationPageState extends State<MealCreationPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   SizedBox(height: 16),
-                                  _buildMealSection(
-                                      'ناهار', _selectedLunchMeals),
+                                  _buildMealSection("غذا", food, 1, myfood),
+                                  SizedBox(height: 16),
+                                  _buildMealSection('رژیمی', diet, 3, mydiet),
                                   SizedBox(height: 16),
                                   _buildMealSection(
-                                      'شام', _selectedDinnerMeals),
+                                      'دسر', dessert, 2, mydessert),
                                   SizedBox(height: 16),
-                                  _buildMealSection(
-                                      'ناهار', _selectedLunchMeals),
-                                  SizedBox(height: 16),
-                                  _buildMealSection(
-                                      'شام', _selectedDinnerMeals),
+                                  _buildDrinkSection(
+                                      'نوشیدنی ها', drinks, mydrinks),
+                                                      Choice<String>.inline(
+                  clearable: false,
+                  value: ChoiceSingle.value(selectedValue),
+                  onChanged: ChoiceSingle.onChanged(setSelectedValue),
+                  itemCount: choices.length,
+                  itemBuilder: (state, i) {
+                    return ChoiceChip(
+                      selected: state.selected(choices[i]),
+                      onSelected: state.onSelected(choices[i]),
+                      label: Text(choices[i]),
+                    );
+                  },
+                  listBuilder: ChoiceList.createScrollable(
+                    spacing: 10,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 25,
+                    ),
+                  ),
+                ),
                                 ]),
                           ),
                     ElevatedButton(
@@ -261,10 +301,8 @@ class _MealCreationPageState extends State<MealCreationPage> {
                             EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                       ),
                       onPressed: () async {
-                        if (_selectedDate != null &&
-                            (!selectedMeals.isEmpty) &&
-                            selectedShift != null) {
-                          await submitData();
+                        if ((selectedFood != null)) {
+                          //await submitData();
                         }
                       },
                       child: Text('تایید'),
@@ -279,7 +317,8 @@ class _MealCreationPageState extends State<MealCreationPage> {
     );
   }
 
-  Widget _buildMealSection(String? title, List<Meal> selectedMeals) {
+  Widget _buildMealSection(String? title, List<Food> selectedMeals, int number,
+      List<Food> selected) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -290,28 +329,39 @@ class _MealCreationPageState extends State<MealCreationPage> {
         SizedBox(height: 8),
         Wrap(
           spacing: 8,
-          children: selectedMeals.map((meal) {
+          children: selected.map((food) {
             return Chip(
-              label: Text(meal.food.name),
+              label: Text(food.name),
               onDeleted: () {
                 setState(() {
-                  selectedMeals.remove(meal);
-                  this.selectedMeals.remove(meal);
-                  this.selectedMeals.remove(meal);
+                  selected.remove(food);
+                  if (number == 1) {
+                    this.selectedFood = null;
+                  } else if (number == 2) {
+                    this.selectedDessert = null;
+                  } else {
+                    this.selectedDiet = null;
+                  }
                 });
               },
             );
           }).toList(),
         ),
-        if (selectedMeals.length < 2)
+        if (selected.length < 1)
           ElevatedButton(
             onPressed: () async {
-              final selectedMeal = await _showMealSelectionDialog(title);
+              final selectedMeal =
+                  await _showFoodSelectionDialog(title, selectedMeals);
               if (selectedMeal != null) {
                 setState(() {
-                  selectedMeals.add(selectedMeal);
-                  this.selectedMeals.add(selectedMeal);
-                  //print(selectedMeals);
+                  selected.add(selectedMeal);
+                  if (number == 1) {
+                    this.selectedFood = selectedMeal;
+                  } else if (number == 2) {
+                    this.selectedDessert = selectedMeal;
+                  } else {
+                    this.selectedDiet = selectedMeal;
+                  }
                 });
               }
             },
@@ -321,21 +371,9 @@ class _MealCreationPageState extends State<MealCreationPage> {
     );
   }
 
-  Future<Meal?> _showMealSelectionDialog(String title) async {
-    List<Meal> myMeals = [];
-    for (var i in meals) {
-      if (i.dailyMeal == "شام" &&
-          title == 'شام' &&
-          !_selectedDinnerMeals.contains(i)) {
-        myMeals.add(i);
-      }
-      if (i.dailyMeal == "ناهار" &&
-          title == 'ناهار' &&
-          !_selectedLunchMeals.contains(i)) {
-        myMeals.add(i);
-      }
-    }
-    return showDialog<Meal>(
+  Future<Food?> _showFoodSelectionDialog(
+      String title, List<Food> myFood) async {
+    return showDialog<Food>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -344,12 +382,97 @@ class _MealCreationPageState extends State<MealCreationPage> {
             width: double.minPositive,
             child: ListView(
               shrinkWrap: true,
-              children: myMeals
-                  .map((meal) => ListTile(
-                        title: Text(meal.food.name),
+              children: myFood
+                  .map((food) => ListTile(
+                        title: Text(food.name),
                         onTap: () {
                           Navigator.pop(
-                              context, meal); // Return the Meal object
+                              context, food); // Return the Meal object
+                        },
+                      ))
+                  .toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('بازگشت'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDrinkSection(
+      String? title, List<Drink> selectedMeals, List<Drink> selected) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title!,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Wrap(
+            spacing: 8,
+            children: selected.map((food) {
+              return Chip(
+                label: Text(food.name),
+                onDeleted: () {
+                  setState(() {
+                    selected.remove(food);
+                  });
+                },
+              );
+            }).toList(),
+          ),
+        ),
+        if (true)
+          ElevatedButton(
+            onPressed: () async {
+              final selectedMeal =
+                  await _showDrinkSelectionDialog(title, selectedMeals);
+              if (selectedMeal != null) {
+                setState(() {
+                  selected.add(selectedMeal);
+                  this.selectedDrinks.add(selectedMeal);
+                });
+              }
+            },
+            child: Text('$title اضافه کنید'),
+          ),
+      ],
+    );
+  }
+
+  Future<Drink?> _showDrinkSelectionDialog(
+      String title, List<Drink> thisFood) async {
+    List<Drink> myFood = [];
+    for (var i in thisFood) {
+      if (!this.selectedDrinks.contains(i)) {
+        myFood.add(i);
+      }
+    }
+    return showDialog<Drink>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('انتخاب کنید'),
+          content: Container(
+            width: double.minPositive,
+            child: ListView(
+              shrinkWrap: true,
+              children: myFood
+                  .map((food) => ListTile(
+                        title: Text(food.name),
+                        onTap: () {
+                          Navigator.pop(
+                              context, food); // Return the Meal object
                         },
                       ))
                   .toList(),

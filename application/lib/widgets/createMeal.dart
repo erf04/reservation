@@ -5,6 +5,7 @@ import 'package:application/repository/tokenManager.dart';
 import 'package:application/widgets/MainPage.dart';
 import 'package:application/widgets/SoftenPageTransition.dart';
 import 'package:application/widgets/profile.dart';
+import 'package:application/widgets/selectNewMeal.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:choice/choice.dart';
 import 'package:dio/dio.dart';
@@ -465,7 +466,7 @@ class _MealCreationPageState extends State<MealCreationPage> {
                     null); // Returning null to indicate creation of new meal
               },
               child: TextButton(
-                  onPressed: () => _createNewMeal(),
+                  onPressed: () => FadePageRoute.navigateToNextPage(context,  MealSelectionPage()),
                   child: Text('وعده جدید')),
             ),
           ],
@@ -475,14 +476,13 @@ class _MealCreationPageState extends State<MealCreationPage> {
   }
 }
 
-//   List<String> choices = ['ناهار', 'شام'];
 //   String? selectedValue;
 
-//   void setSelectedValue(String? value) {
-//     setState(() {
-//       selectedValue = value;
-//     });
-//   }
+  // void setSelectedValue(String? value) {
+  //   setState(() {
+  //     selectedValue = value;
+  //   });
+  // }
 
 //   Widget _createNewMeal() {
 //     selectedValue = this.choices[0];
@@ -502,26 +502,26 @@ class _MealCreationPageState extends State<MealCreationPage> {
 //                       label: Text('نام غذای جدید'),
 //                       hintText: 'optional'),
 //                 ),
-//                 Choice<String>.inline(
-//                   clearable: false,
-//                   value: ChoiceSingle.value(selectedValue),
-//                   onChanged: ChoiceSingle.onChanged(setSelectedValue),
-//                   itemCount: choices.length,
-//                   itemBuilder: (state, i) {
-//                     return ChoiceChip(
-//                       selected: state.selected(choices[i]),
-//                       onSelected: state.onSelected(choices[i]),
-//                       label: Text(choices[i]),
-//                     );
-//                   },
-//                   listBuilder: ChoiceList.createScrollable(
-//                     spacing: 10,
-//                     padding: const EdgeInsets.symmetric(
-//                       horizontal: 20,
-//                       vertical: 25,
-//                     ),
-//                   ),
-//                 ),
+                // Choice<String>.inline(
+                //   clearable: false,
+                //   value: ChoiceSingle.value(selectedValue),
+                //   onChanged: ChoiceSingle.onChanged(setSelectedValue),
+                //   itemCount: choices.length,
+                //   itemBuilder: (state, i) {
+                //     return ChoiceChip(
+                //       selected: state.selected(choices[i]),
+                //       onSelected: state.onSelected(choices[i]),
+                //       label: Text(choices[i]),
+                //     );
+                //   },
+                //   listBuilder: ChoiceList.createScrollable(
+                //     spacing: 10,
+                //     padding: const EdgeInsets.symmetric(
+                //       horizontal: 20,
+                //       vertical: 25,
+                //     ),
+                //   ),
+                // ),
 //               ],
 //             ),
 //             TextField(
