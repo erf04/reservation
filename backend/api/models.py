@@ -139,7 +139,7 @@ class Meal(models.Model):
     diet=models.ForeignKey(Food,on_delete=models.CASCADE,related_name="diet_meals",null=True,blank=True,verbose_name="غذای رژیمی")
     dessert=models.ForeignKey(Food,on_delete=models.CASCADE,related_name="dessert_meals",null=True,blank=True,verbose_name="دسر")
     daily_meal=models.CharField(max_length=50,choices=DailyMeal.choices,verbose_name="وعده غذا")
-    drinks=models.ManyToManyField(Drink,verbose_name="نوشیدنی ها")
+    drinks=models.ManyToManyField(Drink,verbose_name="نوشیدنی ها",blank=True)
 
     class Meta:
         verbose_name="وعده"
