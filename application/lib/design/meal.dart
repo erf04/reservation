@@ -3,11 +3,12 @@ import 'package:flutter/src/material/list_tile.dart';
 
 class Drink {
   final String name;
-
-  Drink({required this.name});
+  final int id;
+  Drink( {required this.id,required this.name});
 
   factory Drink.fromJson(Map<String, dynamic> json) {
-    return Drink(name: json['name']);
+    return Drink(name: json['name'],
+      id: json['id']);
   }
 }
 
@@ -33,7 +34,7 @@ class Meal {
     List<Drink> myDrinks = [];
     for (var i in json['drinks']) {
       //print('fucking hell');
-      myDrinks.add(Drink(name: i['name']));
+      myDrinks.add(Drink(name: i['name'], id: i['id']));
     }
     return Meal(
         id: json['id'],
@@ -43,5 +44,4 @@ class Meal {
         dailyMeal: json['daily_meal'],
         drink: myDrinks);
   }
-
 }

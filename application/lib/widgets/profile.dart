@@ -61,7 +61,7 @@ class _ProfileState extends State<Profile> {
         }
         List<Drink> myDrinks = [];
         for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(Drink(name: j["name"]) );
+          myDrinks.add(Drink(name: j["name"], id:j['id'] ));
         }
         Meal myMeal = Meal(
             id: i["meal"]["id"],

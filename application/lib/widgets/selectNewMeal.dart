@@ -103,42 +103,46 @@ class _MealSelectionPageState extends State<MealSelectionPage> {
     }
   }
 
-
   List<String> choices = ['ناهار', 'شام'];
 
   Future<void> submitData() async {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
-      for (var i in selectedMeals) {
-        final response = await HttpClient.instance.post(
-          'api/shiftmeal/create/',
-          options: Options(headers: {'Authorization': 'JWT $myAccess'}),
-          data: jsonEncode(<String, dynamic>{
-            'shift-name': selectedShift!,
-            'meal-id': i!.id,
-            'date': selectedDate!,
-          }),
-        );
-        if (response.statusCode == 201) {
-        } else {
-          setState(() {
-            internetError = true;
-          });
-        }
+      List<int?> myIds = [];
+      for (var i in selectedDrinks) {
+        myIds.add(i.id);
       }
-
-      setState(() {
-        success = true;
-        selectedDate = null;
-        selectedShift = null;
-        selectedDessert = null;
-        selectedFood = null;
-        selectedDiet = null;
-        selectedDrinks = [];
-      });
+      final response = await HttpClient.instance.post(
+        'api/meal/create/',
+        options: Options(headers: {'Authorization': 'JWT $myAccess'}),
+        data: jsonEncode(<String, dynamic>{
+          'food': selectedFood!.id,
+          'diet': selectedDiet!.id,
+          'dessert': selectedDessert!.id,
+          'daily_meal': selectedValue,
+          "drinks": myIds
+        }),
+      );
+      if (response.statusCode == 201) {
+      } else {
+        setState(() {
+          internetError = true;
+        });
+      }
     }
+
+    setState(() {
+      success = true;
+      selectedDate = null;
+      selectedShift = null;
+      selectedDessert = null;
+      selectedFood = null;
+      selectedDiet = null;
+      selectedDrinks = [];
+    });
   }
+
   String? selectedValue;
   void setSelectedValue(String? value) {
     setState(() {
@@ -255,7 +259,7 @@ class _MealSelectionPageState extends State<MealSelectionPage> {
                           )
                         : Container(
                             height:
-                                MediaQuery.of(context).size.height * (4 / 7) +
+                                MediaQuery.of(context).size.height * (6 / 8) +
                                     10,
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,26 +274,28 @@ class _MealSelectionPageState extends State<MealSelectionPage> {
                                   SizedBox(height: 16),
                                   _buildDrinkSection(
                                       'نوشیدنی ها', drinks, mydrinks),
-                                                      Choice<String>.inline(
-                  clearable: false,
-                  value: ChoiceSingle.value(selectedValue),
-                  onChanged: ChoiceSingle.onChanged(setSelectedValue),
-                  itemCount: choices.length,
-                  itemBuilder: (state, i) {
-                    return ChoiceChip(
-                      selected: state.selected(choices[i]),
-                      onSelected: state.onSelected(choices[i]),
-                      label: Text(choices[i]),
-                    );
-                  },
-                  listBuilder: ChoiceList.createScrollable(
-                    spacing: 10,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 25,
-                    ),
-                  ),
-                ),
+                                  Choice<String>.inline(
+                                    clearable: false,
+                                    value: ChoiceSingle.value(selectedValue),
+                                    onChanged: ChoiceSingle.onChanged(
+                                        setSelectedValue),
+                                    itemCount: choices.length,
+                                    itemBuilder: (state, i) {
+                                      return ChoiceChip(
+                                        selected: state.selected(choices[i]),
+                                        onSelected:
+                                            state.onSelected(choices[i]),
+                                        label: Text(choices[i]),
+                                      );
+                                    },
+                                    listBuilder: ChoiceList.createScrollable(
+                                      spacing: 10,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 25,
+                                      ),
+                                    ),
+                                  ),
                                 ]),
                           ),
                     ElevatedButton(
@@ -302,7 +308,7 @@ class _MealSelectionPageState extends State<MealSelectionPage> {
                       ),
                       onPressed: () async {
                         if ((selectedFood != null)) {
-                          //await submitData();
+                          await submitData();
                         }
                       },
                       child: Text('تایید'),

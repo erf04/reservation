@@ -71,7 +71,7 @@ class _MainPageState extends State<MainPage> {
         //print('moz3');
         List<Drink> myDrinks = [];
         for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(Drink(name: j["name"]));
+          myDrinks.add(Drink(name: j["name"], id: j['id']));
         }
         //print('moz4');
         Meal myMeal = Meal(

@@ -90,7 +90,7 @@ class _ReservePageState extends State<ReservePage> {
         //print("good1");
         List<Drink> myDrinks = [];
         for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(Drink(name: j["name"]));
+          myDrinks.add(Drink(name: j["name"] , id: j['id']));
         }
         //print("good2");
         Meal myMeal = Meal(
