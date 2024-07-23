@@ -72,7 +72,7 @@ class _MealCreationPageState extends State<MealCreationPage> {
     }
   }
 
-  Future<void> deleteData(Meal meal) async {
+  Future<void> deleteData(Meal meal,String title) async {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
@@ -82,6 +82,8 @@ class _MealCreationPageState extends State<MealCreationPage> {
       if (response.statusCode == 204) {
         setState(() {
           meals.remove(meal);
+          Navigator.pop(context);
+          this._showMealSelectionDialog(title);
         });
       } else {
         setState(() {
@@ -220,7 +222,9 @@ class _MealCreationPageState extends State<MealCreationPage> {
                                   '${meal.food.type} ${meal.food.name}${meal.diet != null ? notEmpty : emptyString}${meal.diet != null ? meal.diet!.name : emptyString}${meal.desert != null ? notEmpty : emptyString}${meal.desert != null ? meal.desert!.name : emptyString}'),
                               IconButton(
                                   onPressed: () {
-                                    this.deleteData(meal);
+                                    setState(() {
+                                      this.deleteData(meal, title);
+                                    });
                                   },
                                   icon: Icon(CupertinoIcons.trash))
                             ],
