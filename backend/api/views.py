@@ -532,7 +532,7 @@ class ShiftManagerView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         from_date=ISO_to_gregorian(from_date)
         to_date=ISO_to_gregorian(to_date)
-        user=User.objects.get(user_id)
+        user=User.objects.get(pk=user_id)
         supervisor_record=SupervisorRecord.objects.create(
             user=user,
             shift_manager=shift_manager,
