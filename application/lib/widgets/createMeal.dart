@@ -23,21 +23,23 @@ class MealCreationPage extends StatefulWidget {
 }
 
 class _MealCreationPageState extends State<MealCreationPage> {
-  List<String> shifts = ['A', 'B', 'C', 'D'];
-  List<Meal> meals = [];
-  String? selectedShift;
-  List<Meal?> selectedMeals = [];
-  String? selectedDate;
-  var _selectedDate;
-  int selectedIndex = -1;
-  bool internetError = false;
   bool alreadyCreated = false;
-  bool success = false;
-  bool selectedLaunch = false;
-  bool selectedDinner = false;
+  bool internetError = false;
+  List<Meal> meals = [];
   bool selectedCreateNew = false;
-  List<Meal> _selectedLunchMeals = [];
+  String? selectedDate;
+  bool selectedDinner = false;
+  int selectedIndex = -1;
+  bool selectedLaunch = false;
+  List<Meal?> selectedMeals = [];
+  String? selectedShift;
+  List<String> shifts = ['A', 'B', 'C', 'D'];
+  bool success = false;
+
+  var _selectedDate;
   List<Meal> _selectedDinnerMeals = [];
+  List<Meal> _selectedLunchMeals = [];
+
   @override
   void initState() {
     super.initState();
@@ -138,6 +140,121 @@ class _MealCreationPageState extends State<MealCreationPage> {
         selectedShift = null;
       });
     }
+  }
+
+  Widget _buildMealSection(String? title, List<Meal> selectedMeals) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title!,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: selectedMeals.map((meal) {
+            return Chip(
+              label: Text(meal.food.name),
+              onDeleted: () {
+                setState(() {
+                  selectedMeals.remove(meal);
+                  this.selectedMeals.remove(meal);
+                  this.selectedMeals.remove(meal);
+                });
+              },
+            );
+          }).toList(),
+        ),
+        if (selectedMeals.length < 2)
+          ElevatedButton(
+            onPressed: () async {
+              final selectedMeal = await _showMealSelectionDialog(title);
+              if (selectedMeal != null) {
+                setState(() {
+                  selectedMeals.add(selectedMeal);
+                  this.selectedMeals.add(selectedMeal);
+                  //print(selectedMeals);
+                });
+              }
+            },
+            child: Text('$title اضافه کنید'),
+          ),
+      ],
+    );
+  }
+
+  Future<Meal?> _showMealSelectionDialog(String title) async {
+    List<Meal> myMeals = [];
+    for (var i in meals) {
+      if (i.dailyMeal == "شام" &&
+          title == 'شام' &&
+          !_selectedDinnerMeals.contains(i)) {
+        myMeals.add(i);
+      }
+      if (i.dailyMeal == "ناهار" &&
+          title == 'ناهار' &&
+          !_selectedLunchMeals.contains(i)) {
+        myMeals.add(i);
+      }
+    }
+    String emptyString = '';
+    String notEmpty = ' - ';
+    return showDialog<Meal>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('انتخاب کنید'),
+          content: Container(
+            width: double.minPositive,
+            child: ListView(
+              shrinkWrap: true,
+              children: myMeals
+                  .map((meal) => ListTile(
+                        title: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                  '${meal.food.type} ${meal.food.name}${meal.diet != null ? notEmpty : emptyString}${meal.diet != null ? meal.diet!.name : emptyString}${meal.desert != null ? notEmpty : emptyString}${meal.desert != null ? meal.desert!.name : emptyString}'),
+                              IconButton(
+                                  onPressed: () {
+                                    this.deleteData(meal);
+                                  },
+                                  icon: Icon(CupertinoIcons.trash))
+                            ],
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.pop(
+                              context, meal); // Return the Meal object
+                        },
+                      ))
+                  .toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('بازگشت'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context,
+                    null); // Returning null to indicate creation of new meal
+              },
+              child: TextButton(
+                  onPressed: () => FadePageRoute.navigateToNextPage(
+                      context, MealSelectionPage()),
+                  child: Text('وعده جدید')),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -395,121 +512,6 @@ class _MealCreationPageState extends State<MealCreationPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildMealSection(String? title, List<Meal> selectedMeals) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title!,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          children: selectedMeals.map((meal) {
-            return Chip(
-              label: Text(meal.food.name),
-              onDeleted: () {
-                setState(() {
-                  selectedMeals.remove(meal);
-                  this.selectedMeals.remove(meal);
-                  this.selectedMeals.remove(meal);
-                });
-              },
-            );
-          }).toList(),
-        ),
-        if (selectedMeals.length < 2)
-          ElevatedButton(
-            onPressed: () async {
-              final selectedMeal = await _showMealSelectionDialog(title);
-              if (selectedMeal != null) {
-                setState(() {
-                  selectedMeals.add(selectedMeal);
-                  this.selectedMeals.add(selectedMeal);
-                  //print(selectedMeals);
-                });
-              }
-            },
-            child: Text('$title اضافه کنید'),
-          ),
-      ],
-    );
-  }
-
-  Future<Meal?> _showMealSelectionDialog(String title) async {
-    List<Meal> myMeals = [];
-    for (var i in meals) {
-      if (i.dailyMeal == "شام" &&
-          title == 'شام' &&
-          !_selectedDinnerMeals.contains(i)) {
-        myMeals.add(i);
-      }
-      if (i.dailyMeal == "ناهار" &&
-          title == 'ناهار' &&
-          !_selectedLunchMeals.contains(i)) {
-        myMeals.add(i);
-      }
-    }
-    String emptyString = '';
-    String notEmpty = ' - ';
-    return showDialog<Meal>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('انتخاب کنید'),
-          content: Container(
-            width: double.minPositive,
-            child: ListView(
-              shrinkWrap: true,
-              children: myMeals
-                  .map((meal) => ListTile(
-                        title: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                  '${meal.food.type} ${meal.food.name}${meal.diet != null ? notEmpty : emptyString}${meal.diet != null ? meal.diet!.name : emptyString}${meal.desert != null ? notEmpty : emptyString}${meal.desert != null ? meal.desert!.name : emptyString}'),
-                              IconButton(
-                                  onPressed: () {
-                                    this.deleteData(meal);
-                                  },
-                                  icon: Icon(CupertinoIcons.trash))
-                            ],
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(
-                              context, meal); // Return the Meal object
-                        },
-                      ))
-                  .toList(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('بازگشت'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context,
-                    null); // Returning null to indicate creation of new meal
-              },
-              child: TextButton(
-                  onPressed: () => FadePageRoute.navigateToNextPage(
-                      context, MealSelectionPage()),
-                  child: Text('وعده جدید')),
-            ),
-          ],
-        );
-      },
     );
   }
 }
