@@ -13,4 +13,5 @@ urlpatterns = [
     path('sms/',views.send_sms),
     path('password/reset/',views.PasswordResetRequestView.as_view()),
     path('password/reset/confirm/',views.PasswordResetConfirmView.as_view()),
+    path('meal/delete/<int:id>/',views.delete_meal)
 ]

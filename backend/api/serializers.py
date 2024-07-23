@@ -28,6 +28,40 @@ class MealSerializer(ModelSerializer):
         model = Meal
         fields=('id','food','diet','dessert','daily_meal','drinks')
 
+    # def to_internal_value(self, data):
+    #     # Convert ID fields to instances for internal use
+    #     internal_value = super().to_internal_value(data)
+    #     food_id = data.get('food')
+    #     diet_id = data.get('diet')
+    #     dessert_id = data.get('dessert')
+    #     drink_ids = data.get('drinks', [])
+
+    #     if food_id:
+    #         internal_value['food'] = Food.objects.get(id=food_id)
+    #     if diet_id:
+    #         internal_value['diet'] = Food.objects.get(id=diet_id)
+    #     if dessert_id:
+    #         internal_value['dessert'] = Food.objects.get(id=dessert_id)
+    #     if drink_ids:
+    #         internal_value['drinks'] = Drink.objects.filter(id__in=drink_ids)
+
+    #     return internal_value
+
+    # def create(self, validated_data):
+    #     drinks_data = validated_data.pop('drinks', [])
+    #     meal = Meal.objects.create(**validated_data)
+    #     meal.drinks.set(drinks_data)
+    #     return meal
+
+    # def to_representation(self, instance):
+    #     # Use nested serializers for output
+    #     representation = super().to_representation(instance)
+    #     representation['food'] = FoodSerializer(instance.food).data
+    #     representation['diet'] = FoodSerializer(instance.diet).data if instance.diet else None
+    #     representation['dessert'] = FoodSerializer(instance.dessert).data if instance.dessert else None
+    #     representation['drinks'] = DrinkSerializer(instance.drinks.all(), many=True).data
+    #     return representation
+
 
 
 class ShiftSerializer(ModelSerializer):
@@ -148,7 +182,14 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 class DrinkSerializer(serializers.ModelSerializer):
     class Meta:
         model =Drink
-        fields = ('id','name')
+        fields = "__all__"
+
+
+class MealCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meal
+        fields =('food','drinks','dessert','diet','daily_meal')
+
 
     
 
