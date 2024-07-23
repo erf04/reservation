@@ -350,7 +350,7 @@ class MealAPIView(APIView):
 @api_view(['DELETE'])
 def delete_meal(request:Request,id:int):
     try:
-        meal=Meal.objects.get(id)
+        meal=Meal.objects.get(pk=id)
         meal.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Meal.DoesNotExist:
