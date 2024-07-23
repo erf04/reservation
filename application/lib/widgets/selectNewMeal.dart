@@ -118,8 +118,8 @@ class _MealSelectionPageState extends State<MealSelectionPage> {
         options: Options(headers: {'Authorization': 'JWT $myAccess'}),
         data: jsonEncode(<String, dynamic>{
           'food': selectedFood!.id,
-          'diet': selectedDiet!.id,
-          'dessert': selectedDessert!.id,
+          'diet': selectedDiet?.id,
+          'dessert': selectedDessert?.id,
           'daily_meal': selectedValue,
           "drinks": myIds
         }),

@@ -355,8 +355,8 @@ class _MealCreationPageState extends State<MealCreationPage> {
                         backgroundColor: Colors.white70,
                         minimumSize:
                             Size(MediaQuery.of(context).size.width * 0.8, 50),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 15),
                       ),
                       onPressed: () async {
                         if (_selectedDate != null &&
@@ -433,6 +433,8 @@ class _MealCreationPageState extends State<MealCreationPage> {
         myMeals.add(i);
       }
     }
+    String emptyString = '';
+    String notEmpty = ' - ';
     return showDialog<Meal>(
       context: context,
       builder: (context) {
@@ -444,7 +446,8 @@ class _MealCreationPageState extends State<MealCreationPage> {
               shrinkWrap: true,
               children: myMeals
                   .map((meal) => ListTile(
-                        title: Text(meal.food.name),
+                        title: Text(
+                            '${meal.food.type} ${meal.food.name}${meal.diet != null ? notEmpty : emptyString}${meal.diet != null ? meal.diet!.name : emptyString}${meal.desert != null ? notEmpty : emptyString}${meal.desert != null ? meal.desert!.name : emptyString}'),
                         onTap: () {
                           Navigator.pop(
                               context, meal); // Return the Meal object
@@ -466,7 +469,8 @@ class _MealCreationPageState extends State<MealCreationPage> {
                     null); // Returning null to indicate creation of new meal
               },
               child: TextButton(
-                  onPressed: () => FadePageRoute.navigateToNextPage(context,  MealSelectionPage()),
+                  onPressed: () => FadePageRoute.navigateToNextPage(
+                      context, MealSelectionPage()),
                   child: Text('وعده جدید')),
             ),
           ],
