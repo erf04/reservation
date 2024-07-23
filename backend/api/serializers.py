@@ -1,5 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from .models import Meal,ShiftMeal,Shift,Reservation,User,Food,FoodType,DailyMeal,Drink,User
+from .models import Meal,ShiftMeal,Shift,Reservation,User,Food,FoodType,DailyMeal,Drink,User,SupervisorRecord,ShiftManager
 from rest_framework import serializers
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
@@ -84,7 +84,7 @@ class ShiftMealSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields=('id','username','email','profile','is_supervisor',"is_shift_manager")
+        fields=('id','username','email','profile','is_supervisor',"is_shift_manager","working_shift")
         ref_name="UserSerializer"
 
 
@@ -189,6 +189,60 @@ class MealCreationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meal
         fields =('food','drinks','dessert','diet','daily_meal')
+
+    def validate(self, data:dict):
+        food = data.get('food')
+        diet = data.get('diet')
+        dessert = data.get('dessert')
+        daily_meal = data.get('daily_meal')
+        drinks = data.get('drinks')
+
+        # Check for existing meal with the same details
+        existing_meal = Meal.objects.filter(
+            food=food,
+            diet=diet,
+            dessert=dessert,
+            daily_meal=daily_meal,
+        ).distinct()
+
+        # Further filtering with drinks as it's a many-to-many field
+        if existing_meal.exists():
+            existing_meal = existing_meal.filter(drinks__in=drinks)
+            if existing_meal.exists():
+                raise serializers.ValidationError("A meal with these details already exists.")
+
+        return data
+
+    def create(self, validated_data):
+        drinks = validated_data.pop('drinks')
+        meal = Meal.objects.create(**validated_data)
+        meal.drinks.set(drinks)
+        return meal
+
+
+class ShiftManagerSerializer(serializers.ModelSerializer):
+    user=UserSerializer(many=False)
+    shift=ShiftSerializer(many=False)
+    class Meta:
+        model = ShiftManager
+        fields =('id','user','shift')
+
+
+
+class SupervisorRecordSerializer(serializers.ModelSerializer):
+    user=UserSerializer(many=False)
+    shift_manager=ShiftManagerSerializer(many=False)
+    class Meta:
+        model = SupervisorRecord
+        fields =('id','user','shift_manager','from_date','to_date')
+
+
+class SupervisorRecordCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=SupervisorRecord
+        fields = ('user','shift_manager','from_date','to_date')
+
+    
 
 
     

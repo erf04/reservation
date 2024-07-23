@@ -35,8 +35,8 @@ class ShiftMealAdmin(admin.ModelAdmin):
 
 class SupervisorRecordAdmin(admin.ModelAdmin):
     form = ShiftMealForm
-    list_display = ('user','supervisor','from_date','to_date')
-    search_fields = ('user','supervisor','from_date','to_date')
+    list_display = ('user','shift_manager','from_date','to_date')
+    search_fields = ('user','shift_manager','from_date','to_date')
 
 class ReservationAdmin(admin.ModelAdmin):
     form = ReservationForm

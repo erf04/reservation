@@ -8,6 +8,18 @@ import jdatetime
 
 
 
+
+
+
+class ShiftType(models.TextChoices):
+    A='A','A'
+    B='B','B'
+    C='C','C'
+    D='D','D'
+
+    def get_values(self):
+        return [choice.value for choice in self]
+    
 class User(AbstractUser):
     @property
     def is_supervisor(self):
@@ -32,20 +44,11 @@ class User(AbstractUser):
     profile=models.ImageField(upload_to='profiles/',blank=True,null=True,default='defaults/user.png',verbose_name='پروفایل')
     email=models.EmailField(verbose_name='ایمیل')
     reset_code = models.CharField(max_length=6, blank=True, null=True)
+    working_shift=models.CharField(max_length=100,choices=ShiftType.choices,verbose_name="شیفت کاری",default="B")
 
     class Meta:
         verbose_name = 'کاربر'
         verbose_name_plural = 'کاربران'
-
-
-class ShiftType(models.TextChoices):
-    A='A','A'
-    B='B','B'
-    C='C','C'
-    D='D','D'
-
-    def get_values(self):
-        return [choice.value for choice in self]
 
 
 class Shift(models.Model):
@@ -77,7 +80,7 @@ class ShiftManager(models.Model):
 
 class SupervisorRecord(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,verbose_name="کاربر")
-    supervisor=models.ForeignKey(ShiftManager,on_delete=models.CASCADE,verbose_name="منصوب کننده")
+    shift_manager=models.ForeignKey(ShiftManager,on_delete=models.CASCADE,verbose_name="منصوب کننده")
     from_date=jmodels.jDateField(verbose_name='از تاریخ')
     to_date=jmodels.jDateField(verbose_name='تا تاریخ')
 

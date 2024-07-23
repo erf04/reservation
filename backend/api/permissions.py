@@ -27,3 +27,8 @@ class IsSupervisorOrReadOnly(BasePermission):
 class IsUserReservation(BasePermission):
     def has_object_permission(self, request:Request, view, obj:Reservation):
         return obj.user==request.user
+    
+
+class IsShiftManagerOrReadOnly(BasePermission):
+    def has_permission(self, request:Request, view):
+        return request.user.is_shift_manager
