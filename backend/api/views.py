@@ -347,7 +347,7 @@ class MealAPIView(APIView):
         },status=status.HTTP_200_OK)
         # print(food_types)
 
-
+@api_view(['DELETE'])
 def delete_meal(request:Request,id:int):
     try:
         meal=Meal.objects.get(id)
