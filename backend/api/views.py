@@ -5,16 +5,16 @@ from rest_framework import permissions
 from .serializers import (MealSerializer,ShiftMealSerializer,ReservationSerializer,
 ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer
 ,CombinedFoodCreationSerializer,UserSerializer,PasswordResetRequestSerializer,PasswordResetConfirmSerializer,
-DrinkSerializer,MealCreationSerializer)
+DrinkSerializer,MealCreationSerializer,SupervisorRecordSerializer)
 from rest_framework.decorators import api_view,permission_classes
-from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal,User,Drink
+from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal,User,Drink,ShiftManager,SupervisorRecord
 import jdatetime
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .swagger_helper import token
 import json
-from .permissions import IsUserOrReadOnly,IsSupervisorOrReadOnly,IsUserReservation
+from .permissions import IsUserOrReadOnly,IsSupervisorOrReadOnly,IsUserReservation,IsShiftManagerOrReadOnly
 from django.core.mail import send_mail
 from django.http import HttpResponse
 import jdatetime
@@ -318,6 +318,7 @@ class MealAPIView(APIView):
     def post(self,request:Request,*args,**kwargs):
         serializer=MealCreationSerializer(data=request.data)
         if serializer.is_valid():
+            serializer.save()
             return Response(data=serializer.data,status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
@@ -355,7 +356,7 @@ def delete_meal(request:Request,id:int):
     except Meal.DoesNotExist:
         return Response(status=status.HTTP_403_FORBIDDEN)
     
-    
+
 class ProfileAPIView(APIView):
     permission_classes=[IsUserOrReadOnly]
     @swagger_auto_schema(
@@ -507,6 +508,41 @@ class FoodView(APIView):
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+
+class ShiftManagerView(APIView):
+    permission_classes=[permissions.IsAuthenticated,IsShiftManagerOrReadOnly]
+
+
+    def get(self,request:Request):
+        user=request.user
+        shiftmanager=ShiftManager.objects.filter(user=user).first()
+        shift=shiftmanager.shift
+        shift_users=User.objects.filter(working_shift=shift)
+        serializer=UserSerializer(shift_users,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
+
+    def post(self,request:Request):
+        user_id=request.data.get("user",None)
+        shift_manager=request.user
+        from_date=request.data.get("from_date",None)
+        to_date=request.data.get("to_date",None)
+        if not user_id or not shift_manager or not from_date or not to_date:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        from_date=ISO_to_gregorian(from_date)
+        to_date=ISO_to_gregorian(to_date)
+        user=User.objects.get(user_id)
+        supervisor_record=SupervisorRecord.objects.create(
+            user=user,
+            shift_manager=shift_manager,
+            from_date=from_date,
+            to_date=to_date
+        )
+        serializer=SupervisorRecordSerializer(supervisor_record,many=False)
+        return Response(data=serializer.data,status=status.HTTP_201_CREATED)
+        
+
 
 
 
