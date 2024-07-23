@@ -14,10 +14,11 @@ class FoodSerializer(ModelSerializer):
         fields="__all__"
 
 
-class DrinkSerializer(ModelSerializer):
+class DrinkSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Drink
-        fields=('name',)
+        model =Drink
+        fields = "__all__"
+
 
 class MealSerializer(ModelSerializer):
     food=FoodSerializer(many=False)
@@ -179,10 +180,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return data
     
 
-class DrinkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model =Drink
-        fields = "__all__"
+
 
 
 class MealCreationSerializer(serializers.ModelSerializer):
