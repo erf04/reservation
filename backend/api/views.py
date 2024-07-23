@@ -525,17 +525,17 @@ class ShiftManagerView(APIView):
 
     def post(self,request:Request):
         user_id=request.data.get("user",None)
-        shift_manager=request.user
+        shiftmanager=ShiftManager.objects.filter(user=request.user).first()
         from_date=request.data.get("from_date",None)
         to_date=request.data.get("to_date",None)
-        if not user_id or not shift_manager or not from_date or not to_date:
+        if not user_id or not shiftmanager or not from_date or not to_date:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         from_date=ISO_to_gregorian(from_date)
         to_date=ISO_to_gregorian(to_date)
         user=User.objects.get(pk=user_id)
         supervisor_record=SupervisorRecord.objects.create(
             user=user,
-            shift_manager=shift_manager,
+            shift_manager=shiftmanager,
             from_date=from_date,
             to_date=to_date
         )
