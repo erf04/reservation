@@ -25,7 +25,6 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
   Jalali? selectedDate;
   TextEditingController searchController = TextEditingController();
   List<Reservation> reservations = [];
-  List<UserMeal> userMeals = [];
 
   @override
   void initState() {
@@ -49,45 +48,50 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
     }
   }
 
-  Future<void> fetchReservations() async {
+  Future<List<UserMeal>> fetchReservations() async {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
+      print(searchController.text);
       String myDate =
           selectedDate!.formatCompactDate().replaceAll('/', '-').trim();
       final response = await HttpClient.instance.post('api/reservations/all/',
           options: Options(headers: {'Authorization': "JWT $myAccess"}),
           data: {
-            'user': searchController.toString(),
+            'user': searchController.text,
             'date': myDate,
             'shift': selectedValue
           });
-      if (response.statusCode == 200) {
-        reservations = [];
-        userMeals = [];
-        for (var i in response.data) {
-          bool flag = true;
-          Reservation myReservation = Reservation.fromJson(i);
-          reservations.add(myReservation);
-          for (var j in userMeals) {
-            if (myReservation.user.id == j.user.id) {
-              if (j.launchName == '' &&
-                  myReservation.shiftMeal.meal.dailyMeal == 'ناهار') {
-                j.launchName = myReservation.shiftMeal.meal.food.name;
-                flag = false;
-              } else if (j.dinnerName == '' &&
-                  myReservation.shiftMeal.meal.dailyMeal == 'شام') {
-                j.dinnerName = myReservation.shiftMeal.meal.food.name;
-                flag = false;
+      reservations = [];
+      List<UserMeal> userMeals = [];
+      setState(() {
+        if (response.statusCode == 200) {
+          for (var i in response.data) {
+            bool flag = true;
+            Reservation myReservation = Reservation.fromJson(i);
+            reservations.add(myReservation);
+            for (var j in userMeals) {
+              if (myReservation.user.id == j.user.id) {
+                if (j.launchName == '' &&
+                    myReservation.shiftMeal.meal.dailyMeal == 'ناهار') {
+                  j.launchName = myReservation.shiftMeal.meal.food.name;
+                  flag = false;
+                } else if (j.dinnerName == '' &&
+                    myReservation.shiftMeal.meal.dailyMeal == 'شام') {
+                  j.dinnerName = myReservation.shiftMeal.meal.food.name;
+                  flag = false;
+                }
               }
             }
-          }
-          if (flag) {
-            userMeals.add(UserMeal(user: myReservation.user));
+            if (flag) {
+              userMeals.add(UserMeal(user: myReservation.user));
+            }
           }
         }
-      }
+      });
+      return userMeals;
     }
+    return [];
   }
 
   List<String> choices = ['A', 'B', 'C', 'D'];
@@ -264,27 +268,46 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
                     SizedBox(height: 16),
                   ]),
                   Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        columns: [
-                          DataColumn(label: Text('Full Name')),
-                          DataColumn(label: Text('Lunch')),
-                          DataColumn(label: Text('Dinner')),
-                        ],
-                        rows: userMeals.map((reservation) {
-                          return DataRow(
-                            cells: [
-                              DataCell(Text(reservation.user.firstName +
-                                  ' ' +
-                                  reservation.user.lastName)),
-                              DataCell(Text(reservation.launchName)),
-                              DataCell(Text(reservation.dinnerName)),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                    child: FutureBuilder<List<UserMeal>>(
+                        future: fetchReservations(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                columns: [
+                                  DataColumn(label: Text('Full Name')),
+                                  DataColumn(label: Text('Lunch')),
+                                  DataColumn(label: Text('Dinner')),
+                                ],
+                                rows: snapshot.data!.map((reservation) {
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text(reservation.user.firstName +
+                                          ' ' +
+                                          reservation.user.lastName)),
+                                      DataCell(Text(reservation.launchName)),
+                                      DataCell(Text(reservation.dinnerName)),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            );
+                          } else if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Text(snapshot.error.toString()),
+                            );
+                          } else {
+                            return Center(
+                              child: Text('No data'),
+                            );
+                          }
+                        }),
                   ),
                 ],
               ),
