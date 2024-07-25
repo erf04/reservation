@@ -10,6 +10,7 @@ import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/tokenManager.dart';
 import 'package:application/widgets/Manager.dart';
 import 'package:application/widgets/SoftenPageTransition.dart';
+import 'package:application/widgets/allReservation.dart';
 import 'package:application/widgets/createMeal.dart';
 import 'package:application/widgets/loginSignUp_state.dart';
 import 'package:application/widgets/profile.dart';
@@ -113,9 +114,6 @@ class _MainPageState extends State<MainPage> {
       //print(myAccess);
       final response = await HttpClient.instance.get("api/profile/",
           options: Options(headers: {"Authorization": "JWT $myAccess"}));
-      print("FUUUUUUUUUUUUUUUUUUUUUCK");
-      print(response.data);
-      print(json.decode(response.data));
       User myUser = User.fromJson(response.data);
       return myUser;
     }
@@ -304,11 +302,8 @@ class _MainPageState extends State<MainPage> {
                                   onTap: () {
                                     print(snapshot.data!.isSuperVisor);
                                     if (snapshot.data!.isSuperVisor) {
-                                      Navigator.of(context)
-                                          .pushReplacement(CupertinoPageRoute(
-                                        builder: (context) =>
-                                            MealCreationPage(),
-                                      ));
+                                      FadePageRoute.navigateToNextPage(
+                                          context, MealCreationPage());
                                     } else {
                                       setState(() {
                                         onErrorCreate = true;
@@ -344,10 +339,8 @@ class _MainPageState extends State<MainPage> {
                                   onTap: () {
                                     print(snapshot.data!.isSuperVisor);
                                     if (snapshot.data!.isSuperVisor) {
-                                      // Navigator.of(context)
-                                      //     .pushReplacement(CupertinoPageRoute(
-                                      //   builder: (context) => MealCreationPage(),
-                                      // ));
+                                      FadePageRoute.navigateToNextPage(
+                                          context, MealReservationsPage());
                                     } else {
                                       setState(() {
                                         onErrorCreate = true;

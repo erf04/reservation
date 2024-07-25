@@ -30,10 +30,8 @@ class Meal {
   });
 
   factory Meal.fromJson(Map<String, dynamic> json) {
-    //print('going bega');
     List<Drink> myDrinks = [];
     for (var i in json['drinks']) {
-      //print('fucking hell');
       myDrinks.add(Drink(name: i['name'], id: i['id']));
     }
     return Meal(

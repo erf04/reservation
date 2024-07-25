@@ -1,5 +1,14 @@
 import 'dart:convert';
 import 'package:application/design/user.dart';
+import 'package:application/repository/HttpClient.dart';
+import 'package:application/repository/tokenManager.dart';
+import 'package:application/widgets/MainPage.dart';
+import 'package:application/widgets/SoftenPageTransition.dart';
+import 'package:application/widgets/profile.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:choice/choice.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
@@ -10,7 +19,6 @@ class MealReservationsPage extends StatefulWidget {
 }
 
 class _MealReservationsPageState extends State<MealReservationsPage> {
-  String? selectedShift;
   Jalali? selectedDate;
   TextEditingController searchController = TextEditingController();
   List<Reservation> reservations = [];
@@ -18,9 +26,7 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
   @override
   void initState() {
     super.initState();
-    selectedShift = 'A'; // Default value
     selectedDate = Jalali.now(); // Default value
-    fetchReservations();
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -39,21 +45,29 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
     }
   }
 
-  Future<void> fetchReservations() async {
-    final response = await http.get(
-      Uri.parse(
-          'https://yourbackend.com/api/reservations?shift=$selectedShift&date=${selectedDate!.toIso8601String()}&search=${searchController.text}'),
-    );
+  Future<void> fetchReservations() async {}
 
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      setState(() {
-        reservations = jsonResponse
-            .map((reservation) => Reservation.fromJson(reservation))
-            .toList();
-      });
-    } else {
-      throw Exception('Failed to load reservations');
+  List<String> choices = ['A', 'B', 'C', 'D'];
+  String? selectedValue;
+
+  void setSelectedValue(String? value) {
+    setState(() {
+      selectedValue = value;
+      if (selectedDate != null && selectedValue != null) {
+        fetchReservations();
+      }
+    });
+  }
+
+  Future<User?> getProfileForMainPage() async {
+    VerifyToken? myVerify = await TokenManager.verifyAccess(context);
+    if (myVerify == VerifyToken.verified) {
+      String? myAccess = await TokenManager.getAccessToken();
+      //print(myAccess);
+      final response = await HttpClient.instance.get("api/profile/",
+          options: Options(headers: {"Authorization": "JWT $myAccess"}));
+      User myUser = User.fromJson(response.data);
+      return myUser;
     }
   }
 
@@ -61,85 +75,175 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Meal Reservations'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        foregroundColor: Colors.white,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            DropdownButton<String>(
-              value: selectedShift,
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedShift = newValue!;
-                  fetchReservations();
-                });
-              },
-              items: ['A', 'B', 'C', 'D']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            IconButton(
+                onPressed: () {
+                  FadePageRoute.navigateToNextPage(context, MainPage());
+                },
+                icon: const Icon(
+                  CupertinoIcons.back,
+                  size: 40,
+                  color: Color.fromARGB(255, 2, 16, 43),
+                )),
+            Text(
+              'رزرو های روز',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium!
+                  .copyWith(fontSize: 25, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    decoration: InputDecoration(labelText: 'Select Date'),
-                    readOnly: true,
-                    onTap: () => _selectDate(context),
-                    controller: TextEditingController(
-                      text: selectedDate != null
-                          ? selectedDate!.formatMediumDate()
-                          : '',
+            FutureBuilder<User?>(
+                future: getProfileForMainPage(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return InkWell(
+                      onTap: () {
+                        FadePageRoute.navigateToNextPage(context, Profile());
+                      },
+                      child: CircleAvatar(
+                        backgroundColor: Colors.deepOrange,
+                        radius: 20,
+                        child: ClipOval(
+                          child: Container(
+                            child: CachedNetworkImage(
+                                imageUrl:
+                                    'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
+                                placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) =>
+                                    Center(child: Icon(Icons.error)),
+                                fit: BoxFit.cover,
+                                width: 40,
+                                height: 40),
+                          ),
+                        ),
+                      ),
+                    );
+                  } else if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else {
+                    return IconButton(
+                        onPressed: () {
+                          FadePageRoute.navigateToNextPage(context, Profile());
+                        },
+                        icon: Icon(CupertinoIcons.profile_circled));
+                  }
+                }),
+          ],
+        ),
+        backgroundColor: Colors.white,
+      ),
+      body: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                //color: Colors.white,
+                image: DecorationImage(
+                  image: AssetImage('assets/new1.jpg'),
+                  fit: BoxFit
+                      .cover, // This ensures the image covers the entire background
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(children: [
+                    Center(
+                      child: Choice<String>.inline(
+                        clearable: true,
+                        value: ChoiceSingle.value(selectedValue),
+                        onChanged: ChoiceSingle.onChanged(setSelectedValue),
+                        itemCount: choices.length,
+                        itemBuilder: (state, i) {
+                          return ChoiceChip(
+                            selected: state.selected(choices[i]),
+                            onSelected: state.onSelected(choices[i]),
+                            label: Text(choices[i]),
+                          );
+                        },
+                        listBuilder: ChoiceList.createScrollable(
+                          spacing: 10,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 25,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              decoration:
+                                  InputDecoration(labelText: 'انتخاب تاریخ'),
+                              readOnly: true,
+                              onTap: () => _selectDate(context),
+                              controller: TextEditingController(
+                                text: selectedDate != null
+                                    ? selectedDate!.formatCompactDate()
+                                    : '',
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.calendar_today),
+                            onPressed: () => _selectDate(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+                      child: TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          labelText: 'جستجو با اسم',
+                          prefixIcon: Icon(Icons.search),
+                        ),
+                        onChanged: (value) {
+                          if (selectedValue != null && selectedDate != null) {
+                            fetchReservations();
+                          }
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                  ]),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: [
+                          DataColumn(label: Text('Full Name')),
+                          DataColumn(label: Text('Lunch')),
+                          DataColumn(label: Text('Dinner')),
+                        ],
+                        rows: reservations.map((reservation) {
+                          return DataRow(
+                            cells: [
+                              DataCell(Text(reservation.user.firstName +
+                                  ' ' +
+                                  reservation.user.lastName)),
+                              DataCell(Text(reservation.lunch)),
+                              DataCell(Text(reservation.dinner)),
+                            ],
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.calendar_today),
-                  onPressed: () => _selectDate(context),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                labelText: 'Search by Name',
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (value) {
-                fetchReservations();
-              },
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: [
-                    DataColumn(label: Text('Full Name')),
-                    DataColumn(label: Text('Lunch')),
-                    DataColumn(label: Text('Dinner')),
-                    DataColumn(label: Text('Date')),
-                    DataColumn(label: Text('Shift')),
-                  ],
-                  rows: reservations.map((reservation) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(reservation.user.firstName + ' ' + reservation.user.lastName)),
-                        DataCell(Text(reservation.lunch)),
-                        DataCell(Text(reservation.dinner)),
-                        DataCell(Text(selectedDate!.formatMediumDate())),
-                        DataCell(Text(selectedShift!)),
-                      ],
-                    );
-                  }).toList(),
-                ),
+                ],
               ),
             ),
           ],
@@ -154,7 +258,7 @@ class Reservation {
   final String lunch;
   final String dinner;
 
-  Reservation( {
+  Reservation({
     required this.user,
     required this.lunch,
     required this.dinner,
@@ -162,7 +266,7 @@ class Reservation {
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
     return Reservation(
-      user : User.fromJson(json['user']),
+      user: User.fromJson(json['user']),
       lunch: json['lunch'],
       dinner: json['dinner'],
     );

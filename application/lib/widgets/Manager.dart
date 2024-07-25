@@ -238,7 +238,7 @@ class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
                                 onTap: () => _selectDate(context, true),
                                 controller: TextEditingController(
                                   text: fromDate != null
-                                      ? fromDate!.formatMediumDate()
+                                      ? fromDate!.formatCompactDate()
                                       : '',
                                 ),
                               ),
@@ -260,7 +260,7 @@ class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
                                 onTap: () => _selectDate(context, false),
                                 controller: TextEditingController(
                                   text: toDate != null
-                                      ? toDate!.formatMediumDate()
+                                      ? toDate!.formatCompactDate()
                                       : '',
                                 ),
                               ),

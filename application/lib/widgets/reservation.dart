@@ -224,7 +224,7 @@ class _ReservePageState extends State<ReservePage> {
                     height: 15,
                   ),
                   Text(
-                    "Select your shift and your desired date :",
+                    "شیفت و تاریخ مورد نظر را انتخاب کنید",
                     style: Theme.of(context)
                         .textTheme
                         .titleLarge!
@@ -342,7 +342,7 @@ class _ReservePageState extends State<ReservePage> {
                   style: Theme.of(context)
                       .textTheme
                       .titleLarge!
-                      .copyWith(color: Colors.white),
+                      .copyWith(color: Colors.black54),
                 ),
               );
             }
