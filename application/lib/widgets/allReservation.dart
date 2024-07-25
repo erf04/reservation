@@ -1,4 +1,7 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+
+import 'package:application/design/shiftmeal.dart';
 import 'package:application/design/user.dart';
 import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/tokenManager.dart';
@@ -22,6 +25,7 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
   Jalali? selectedDate;
   TextEditingController searchController = TextEditingController();
   List<Reservation> reservations = [];
+  List<UserMeal> userMeals = [];
 
   @override
   void initState() {
@@ -40,12 +44,51 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        fetchReservations();
+        if (selectedValue != null) fetchReservations();
       });
     }
   }
 
-  Future<void> fetchReservations() async {}
+  Future<void> fetchReservations() async {
+    VerifyToken? myVerify = await TokenManager.verifyAccess(context);
+    if (myVerify == VerifyToken.verified) {
+      String? myAccess = await TokenManager.getAccessToken();
+      String myDate =
+          selectedDate!.formatCompactDate().replaceAll('/', '-').trim();
+      final response = await HttpClient.instance.post('api/reservations/all/',
+          options: Options(headers: {'Authorization': "JWT $myAccess"}),
+          data: {
+            'user': searchController.toString(),
+            'date': myDate,
+            'shift': selectedValue
+          });
+      if (response.statusCode == 200) {
+        reservations = [];
+        userMeals = [];
+        for (var i in response.data) {
+          bool flag = true;
+          Reservation myReservation = Reservation.fromJson(i);
+          reservations.add(myReservation);
+          for (var j in userMeals) {
+            if (myReservation.user.id == j.user.id) {
+              if (j.launchName == '' &&
+                  myReservation.shiftMeal.meal.dailyMeal == 'ناهار') {
+                j.launchName = myReservation.shiftMeal.meal.food.name;
+                flag = false;
+              } else if (j.dinnerName == '' &&
+                  myReservation.shiftMeal.meal.dailyMeal == 'شام') {
+                j.dinnerName = myReservation.shiftMeal.meal.food.name;
+                flag = false;
+              }
+            }
+          }
+          if (flag) {
+            userMeals.add(UserMeal(user: myReservation.user));
+          }
+        }
+      }
+    }
+  }
 
   List<String> choices = ['A', 'B', 'C', 'D'];
   String? selectedValue;
@@ -229,14 +272,14 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
                           DataColumn(label: Text('Lunch')),
                           DataColumn(label: Text('Dinner')),
                         ],
-                        rows: reservations.map((reservation) {
+                        rows: userMeals.map((reservation) {
                           return DataRow(
                             cells: [
                               DataCell(Text(reservation.user.firstName +
                                   ' ' +
                                   reservation.user.lastName)),
-                              DataCell(Text(reservation.lunch)),
-                              DataCell(Text(reservation.dinner)),
+                              DataCell(Text(reservation.launchName)),
+                              DataCell(Text(reservation.dinnerName)),
                             ],
                           );
                         }).toList(),
@@ -253,23 +296,32 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
   }
 }
 
+class UserMeal {
+  final User user;
+  String launchName = '';
+  String dinnerName = '';
+
+  UserMeal({
+    required this.user,
+  });
+}
+
 class Reservation {
   final User user;
-  final String lunch;
-  final String dinner;
+  final ShiftMeal shiftMeal;
+  final String date;
 
   Reservation({
     required this.user,
-    required this.lunch,
-    required this.dinner,
+    required this.shiftMeal,
+    required this.date,
   });
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
     return Reservation(
-      user: User.fromJson(json['user']),
-      lunch: json['lunch'],
-      dinner: json['dinner'],
-    );
+        user: User.fromJson(json['user']),
+        shiftMeal: ShiftMeal.fromJson(json['shift_meal']),
+        date: json['date']);
   }
 }
 
