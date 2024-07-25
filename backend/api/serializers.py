@@ -241,6 +241,23 @@ class SupervisorRecordCreationSerializer(serializers.ModelSerializer):
         model=SupervisorRecord
         fields = ('user','shift_manager','from_date','to_date')
 
+class SupervisorReservationSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    lunch = serializers.SerializerMethodField()
+    dinner = serializers.SerializerMethodField()
+    date = serializers.DateField(format="%Y-%m-%d")
+
+    class Meta:
+        model = Reservation
+        fields = ['id', 'user', 'lunch', 'dinner', 'date']
+        
+    def get_lunch(self, obj:Reservation):
+        return ShiftMealSerializer(obj.shift_meal,context=self.context).data if obj.shift_meal.meal.daily_meal == 'ناهار' else None
+
+    def get_dinner(self, obj:Reservation):
+        return ShiftMealSerializer(obj.shift_meal,context=self.context).data if obj.shift_meal.meal.daily_meal == 'شام' else None
+
+
     
 
 

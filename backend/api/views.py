@@ -5,7 +5,7 @@ from rest_framework import permissions
 from .serializers import (MealSerializer,ShiftMealSerializer,ReservationSerializer,
 ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer
 ,CombinedFoodCreationSerializer,UserSerializer,PasswordResetRequestSerializer,PasswordResetConfirmSerializer,
-DrinkSerializer,MealCreationSerializer,SupervisorRecordSerializer)
+DrinkSerializer,MealCreationSerializer,SupervisorRecordSerializer,SupervisorReservationSerializer)
 from rest_framework.decorators import api_view,permission_classes
 from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal,User,Drink,ShiftManager,SupervisorRecord
 import jdatetime
@@ -548,12 +548,13 @@ def filter_reservations(request_data:dict):
     shift_search:str = request_data.get('shift', '')
     date_search = request_data.get('date', None)
     # date_search=ISO_to_gregorian(date_search)
-    print(user_search,shift_search,date_search)
+    # print(user_search,shift_search,date_search)
     reservations = Reservation.objects.filter(
         Q(user__first_name__icontains=user_search) |
         Q(user__last_name__icontains=user_search) |
         Q(user__username__icontains=user_search) | 
-        Q(user__first_name__icontains=user_search.split()[0]) & Q(user__last_name__icontains=' '.join(user_search.split()[1:]))
+        Q(user__first_name__icontains=user_search.split()[0] if user_search!='' else user_search) &
+        Q(user__last_name__icontains=' '.join(user_search.split()[1:] if user_search!='' else user_search))
     ).filter(
         shift_meal__shift__shift_name=shift_search,
         shift_meal__date=date_search
@@ -565,8 +566,14 @@ def filter_reservations(request_data:dict):
 @permission_classes([permissions.IsAuthenticated,IsSupervisorOrReadOnly])
 def get_reservations_for_supervisor(request:Request):
         reservations=filter_reservations(request_data=request.data)
-        serializer=ReservationSerializer(reservations,many=True,context={"request":request})
-        return Response(data=serializer.data,status=status.HTTP_200_OK)
+        serializer=SupervisorReservationSerializer(reservations,many=True,context={"request":request}).data
+        response_data = {}
+        if serializer:
+            response_data['user'] = serializer[0]['user']
+            response_data['date'] = serializer[0]['date']
+            response_data['lunch'] = next((res['lunch'] for res in serializer if res['lunch']), None)
+            response_data['dinner'] = next((res['dinner'] for res in serializer if res['dinner']), None)
+        return Response(data=response_data,status=status.HTTP_200_OK)
 
 
 
