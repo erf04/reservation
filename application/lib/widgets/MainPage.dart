@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:application/design/food.dart';
 import 'package:application/design/meal.dart';
 import 'package:application/design/reserve.dart';
@@ -93,12 +95,7 @@ class _MainPageState extends State<MainPage> {
             isReserved: true);
         Reserve temp = Reserve(
             id: j['id'],
-            user: User(
-                id: j['user']['id'],
-                userName: j['user']['username'],
-                profilePhoto: j['user']['profile'],
-                isSuperVisor: j['user']['is_supervisor'],
-                isShiftManager: j['user']["is_shift_manager"]),
+            user: User.fromJson(j['user']),
             shiftMeal: temp1,
             date: j['date']);
 
@@ -116,12 +113,10 @@ class _MainPageState extends State<MainPage> {
       //print(myAccess);
       final response = await HttpClient.instance.get("api/profile/",
           options: Options(headers: {"Authorization": "JWT $myAccess"}));
-      User myUser = User(
-          isShiftManager: response.data["is_shift_manager"],
-          isSuperVisor: response.data["is_supervisor"],
-          id: response.data["id"],
-          userName: response.data["username"],
-          profilePhoto: response.data["profile"]);
+      print("FUUUUUUUUUUUUUUUUUUUUUCK");
+      print(response.data);
+      print(json.decode(response.data));
+      User myUser = User.fromJson(response.data);
       return myUser;
     }
   }
@@ -205,324 +200,393 @@ class _MainPageState extends State<MainPage> {
           ),
           backgroundColor: Colors.white,
         ),
-        body: FutureBuilder<User?>(
-          future: getProfileForMainPage(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: AlertDialog(
-                  title: const Text('Can\'t connect!'),
-                  content: Text(
-                    "Something went wrong while connecting to the server!",
-                    style: Theme.of(context).textTheme.bodyLarge,
+        body: SafeArea(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  //color: Colors.white,
+                  image: DecorationImage(
+                    image: AssetImage('assets/new5.jpg'),
+                    fit: BoxFit
+                        .cover, // This ensures the image covers the entire background
                   ),
-                  actions: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              getProfileForMainPage();
-                            });
-                          },
-                          child: Text('Try Again!'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              Navigator.of(context)
-                                  .pushReplacement(CupertinoPageRoute(
-                                builder: (context) => const LoginSignUp(),
-                              ));
-                            });
-                          },
-                          child: Text('Go back!'),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
-              );
-            } else if (snapshot.hasData) {
-              return SafeArea(
-                  child: Stack(fit: StackFit.expand, children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    //color: Colors.white,
-                    image: DecorationImage(
-                      image: AssetImage('assets/new5.jpg'),
-                      fit: BoxFit
-                          .cover, // This ensures the image covers the entire background
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                FadePageRoute.navigateToNextPage(
-                                    context, ReservePage());
-                              },
-                              child: Container(
-                                height: 65,
-                                width: MediaQuery.of(context).size.width - 60,
-                                decoration: const BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(12)),
-                                    color: Colors.white70),
-                                child: Center(
-                                  child: Text(
-                                    'Reserve',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
+                child: FutureBuilder<User?>(
+                  future: getProfileForMainPage(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: AlertDialog(
+                          title: const Text('Can\'t connect!'),
+                          content: Text(
+                            "Something went wrong while connecting to the server!",
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          actions: <Widget>[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      getProfileForMainPage();
+                                    });
+                                  },
+                                  child: Text('Try Again!'),
                                 ),
-                              ),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      Navigator.of(context)
+                                          .pushReplacement(CupertinoPageRoute(
+                                        builder: (context) =>
+                                            const LoginSignUp(),
+                                      ));
+                                    });
+                                  },
+                                  child: Text('Go back!'),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                print(snapshot.data!.isSuperVisor);
-                                if (snapshot.data!.isSuperVisor) {
-                                  Navigator.of(context)
-                                      .pushReplacement(CupertinoPageRoute(
-                                    builder: (context) => MealCreationPage(),
-                                  ));
-                                } else {
-                                  setState(() {
-                                    onErrorCreate = true;
-                                  });
-                                }
-                              },
-                              child: Container(
-                                height: 65,
-                                width:
-                                    MediaQuery.of(context).size.width * 1 / 2 -
-                                        30,
-                                decoration: const BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(12)),
-                                    color: Colors.white70),
-                                child: Center(
-                                  child: Text(
-                                    'Food Creation',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                      );
+                    } else if (snapshot.hasData) {
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    FadePageRoute.navigateToNextPage(
+                                        context, ReservePage());
+                                  },
+                                  child: Container(
+                                    height: 65,
+                                    width:
+                                        MediaQuery.of(context).size.width - 60,
+                                    decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(12)),
+                                        color: Colors.white70),
+                                    child: Center(
+                                      child: Text(
+                                        'رزرو غذا',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(),
-                            InkWell(
-                              onTap: () {
-                                if(snapshot.data!.isShiftManager) {
-                                  FadePageRoute.navigateToNextPage(context,
-                                    const SupervisorAssignmentPage());
-                                }
-                              },
-                              child: Container(
-                                height: 65,
-                                width:
-                                    MediaQuery.of(context).size.width * 1 / 2 -
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    print(snapshot.data!.isSuperVisor);
+                                    if (snapshot.data!.isSuperVisor) {
+                                      Navigator.of(context)
+                                          .pushReplacement(CupertinoPageRoute(
+                                        builder: (context) =>
+                                            MealCreationPage(),
+                                      ));
+                                    } else {
+                                      setState(() {
+                                        onErrorCreate = true;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    height: 65,
+                                    width: MediaQuery.of(context).size.width *
+                                            1 /
+                                            2 -
                                         30,
-                                decoration: const BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(12)),
-                                    color: Colors.white70),
-                                child: Center(
-                                  child: Text(
-                                    'Manager Page',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                    decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(12)),
+                                        color: Colors.white70),
+                                    child: Center(
+                                      child: Text(
+                                        'ایجاد غذا',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 2, color: Colors.white),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      onErrorCreate
-                          ? Center(
-                              child: AlertDialog(
-                                title: const Text('No access!'),
-                                content: Text(
-                                  "You are not currently the supervisor!",
-                                  style: Theme.of(context).textTheme.bodyLarge,
+                                const SizedBox(),
+                                InkWell(
+                                  onTap: () {
+                                    print(snapshot.data!.isSuperVisor);
+                                    if (snapshot.data!.isSuperVisor) {
+                                      // Navigator.of(context)
+                                      //     .pushReplacement(CupertinoPageRoute(
+                                      //   builder: (context) => MealCreationPage(),
+                                      // ));
+                                    } else {
+                                      setState(() {
+                                        onErrorCreate = true;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    height: 65,
+                                    width: MediaQuery.of(context).size.width *
+                                            1 /
+                                            2 -
+                                        30,
+                                    decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(12)),
+                                        color: Colors.white70),
+                                    child: Center(
+                                      child: Text(
+                                        'رزرو های روز',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                actions: <Widget>[
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            onErrorCreate = false;
-                                          });
-                                        },
-                                        child: const Text('Try Again!'),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    if (snapshot.data!.isShiftManager) {
+                                      FadePageRoute.navigateToNextPage(context,
+                                          const SupervisorAssignmentPage());
+                                    } else {
+                                      setState(() {
+                                        onErrorCreate = true;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    height: 65,
+                                    width:
+                                        MediaQuery.of(context).size.width - 60,
+                                    decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(12)),
+                                        color: Colors.white70),
+                                    child: Center(
+                                      child: Text(
+                                        'صفحه سرپرست',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 2, color: Colors.white),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          onErrorCreate
+                              ? Center(
+                                  child: AlertDialog(
+                                    title: const Text('No access!'),
+                                    content: Text(
+                                      "You don't have permission to visit this page!",
+                                      style:
+                                          Theme.of(context).textTheme.bodyLarge,
+                                    ),
+                                    actions: <Widget>[
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          TextButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                onErrorCreate = false;
+                                              });
+                                            },
+                                            child: const Text('Try Again!'),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            )
-                          : FutureBuilder<List<Reserve>>(
-                              future: getPendingReservations(),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                } else if (snapshot.hasError) {
-                                  return Center(
-                                    child: AlertDialog(
-                                      title: const Text('Poor Connection!'),
-                                      content: Text(
-                                        "Something went wrong while connecting to the server!",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge,
-                                      ),
-                                      actions: <Widget>[
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            TextButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  getPendingReservations();
-                                                });
-                                              },
-                                              child: const Text('Try Again!'),
+                                )
+                              : FutureBuilder<List<Reserve>>(
+                                  future: getPendingReservations(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return Center(
+                                        child: AlertDialog(
+                                          title: const Text('Poor Connection!'),
+                                          content: Text(
+                                            "Something went wrong while connecting to the server!",
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyLarge,
+                                          ),
+                                          actions: <Widget>[
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      getPendingReservations();
+                                                    });
+                                                  },
+                                                  child:
+                                                      const Text('Try Again!'),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
-                                      ],
-                                    ),
-                                  );
-                                } else if (snapshot.hasData) {
-                                  return Container(
-                                    height:
-                                        MediaQuery.of(context).size.height / 2,
-                                    width: MediaQuery.of(context).size.width,
-                                    child: ListView.builder(
-                                        itemCount: snapshot.data!.length,
-                                        itemBuilder: (context, index) {
-                                          //print(snapshot.data![index]);
-                                          return Padding(
-                                            padding: const EdgeInsets.all(16.0),
-                                            child: InkWell(
-                                              onTap: () {
-                                                setState(() {
-                                                  selectedIndex = index;
-                                                });
-                                              },
-                                              child: Container(
-                                                width: MediaQuery.of(context)
-                                                    .size
-                                                    .width,
-                                                height: selectedIndex == index
-                                                    ? MediaQuery.of(context)
+                                      );
+                                    } else if (snapshot.hasData) {
+                                      return Container(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                (2 / 5),
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        child: ListView.builder(
+                                            itemCount: snapshot.data!.length,
+                                            itemBuilder: (context, index) {
+                                              //print(snapshot.data![index]);
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.all(16.0),
+                                                child: InkWell(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      selectedIndex = index;
+                                                    });
+                                                  },
+                                                  child: Container(
+                                                    width:
+                                                        MediaQuery.of(context)
                                                             .size
-                                                            .height *
-                                                        (1 / 3)
-                                                    : 75,
-                                                decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                    color: const Color.fromARGB(
-                                                        255, 242, 200, 145),
-                                                    boxShadow: const [
-                                                      BoxShadow(blurRadius: 4)
-                                                    ]),
-                                                child: Padding(
-                                                  padding: selectedIndex ==
-                                                          index
-                                                      ? const EdgeInsets.all(32)
-                                                      : const EdgeInsets.all(
-                                                          16.0),
-                                                  child: selectedIndex == index
-                                                      ? _columnMethod(
-                                                          snapshot.data!,
-                                                          index,
-                                                          context,
-                                                        )
-                                                      : _rowMethod(
-                                                          snapshot.data!,
-                                                          index,
-                                                          context,
-                                                        ),
+                                                            .width,
+                                                    height: selectedIndex ==
+                                                            index
+                                                        ? MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            (1 / 3)
+                                                        : 75,
+                                                    decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(16),
+                                                        color: const Color
+                                                            .fromARGB(
+                                                            255, 242, 200, 145),
+                                                        boxShadow: const [
+                                                          BoxShadow(
+                                                              blurRadius: 4)
+                                                        ]),
+                                                    child: Padding(
+                                                      padding:
+                                                          selectedIndex == index
+                                                              ? const EdgeInsets
+                                                                  .all(32)
+                                                              : const EdgeInsets
+                                                                  .all(16.0),
+                                                      child: selectedIndex ==
+                                                              index
+                                                          ? _columnMethod(
+                                                              snapshot.data!,
+                                                              index,
+                                                              context,
+                                                            )
+                                                          : _rowMethod(
+                                                              snapshot.data!,
+                                                              index,
+                                                              context,
+                                                            ),
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                            ),
-                                          );
-                                        }),
-                                  );
-                                } else {
-                                  return Center(
-                                    child: Text(
-                                      " NO DATA",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge!
-                                          .copyWith(color: Colors.white),
-                                    ),
-                                  );
-                                }
-                              },
-                            )
-                    ],
-                  ),
-                )
-              ]));
-            } else {
-              return Center(
-                  child: Text("NO DATA",
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge!
-                          .copyWith(color: Colors.white)));
-            }
-          },
+                                              );
+                                            }),
+                                      );
+                                    } else {
+                                      return Center(
+                                        child: Text(
+                                          " NO DATA",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .copyWith(color: Colors.white),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                )
+                        ],
+                      );
+                    } else {
+                      return Center(
+                          child: Text("NO DATA",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(color: Colors.white)));
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
         ));
   }
 

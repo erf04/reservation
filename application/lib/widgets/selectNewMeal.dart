@@ -93,12 +93,7 @@ class _MealSelectionPageState extends State<MealSelectionPage> {
       //print(myAccess);
       final response = await HttpClient.instance.get("api/profile/",
           options: Options(headers: {"Authorization": "JWT $myAccess"}));
-      User myUser = User(
-          isShiftManager: response.data["is_shift_manager"],
-          isSuperVisor: response.data["is_supervisor"],
-          id: response.data["id"],
-          userName: response.data["username"],
-          profilePhoto: response.data["profile"]);
+      User myUser = User.fromJson(response.data);
       return myUser;
     }
   }

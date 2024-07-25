@@ -61,7 +61,7 @@ class _ProfileState extends State<Profile> {
         }
         List<Drink> myDrinks = [];
         for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(Drink(name: j["name"], id:j['id'] ));
+          myDrinks.add(Drink(name: j["name"], id: j['id']));
         }
         Meal myMeal = Meal(
             id: i["meal"]["id"],
@@ -73,7 +73,11 @@ class _ProfileState extends State<Profile> {
         Shift myShift =
             Shift(id: i["shift"]["id"], shiftName: i["shift"]["shift_name"]);
         ShiftMeal temp = ShiftMeal(
-            id: i["id"], date: i["date"], meal: myMeal, shift: myShift ,isReserved: true);
+            id: i["id"],
+            date: i["date"],
+            meal: myMeal,
+            shift: myShift,
+            isReserved: true);
         print("Success");
         myList.add(temp);
       }
@@ -89,12 +93,7 @@ class _ProfileState extends State<Profile> {
       print(myAccess);
       final response = await HttpClient.instance.get("api/profile/",
           options: Options(headers: {"Authorization": "JWT $myAccess"}));
-      User myUser = User(
-          isShiftManager: response.data["is_shift_manager"],
-          isSuperVisor: response.data["is_supervisor"],
-          id: response.data["id"],
-          userName: response.data["username"],
-          profilePhoto: response.data["profile"]);
+      User myUser = User.fromJson(response.data);
       return myUser;
     }
   }
@@ -153,7 +152,8 @@ class _ProfileState extends State<Profile> {
                                   imageUrl:
                                       'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
                                   placeholder: (context, url) => const Center(
-                                      child: Center(child: CircularProgressIndicator())),
+                                      child: Center(
+                                          child: CircularProgressIndicator())),
                                   errorWidget: (context, url, error) =>
                                       Center(child: Icon(Icons.error)),
                                   fit: BoxFit.cover,
@@ -422,47 +422,47 @@ class _ProfileState extends State<Profile> {
                 .bodyMedium!
                 .copyWith(fontSize: 25, fontWeight: FontWeight.bold),
           ),
-              FutureBuilder<User?>(
-                  future: getProfile(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return InkWell(
-                        onTap: () {
-                          FadePageRoute.navigateToNextPage(context, Profile());
-                        },
-                        child: CircleAvatar(
-                          backgroundColor: Colors.deepOrange,
-                          radius: 20,
-                          child: ClipOval(
-                            child: Container(
-                              child: CachedNetworkImage(
-                                  imageUrl:
-                                      'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
-                                  placeholder: (context, url) => const Center(
-                                      child: Center(child: CircularProgressIndicator())),
-                                  errorWidget: (context, url, error) =>
-                                      Center(child: Icon(Icons.error)),
-                                  fit: BoxFit.cover,
-                                  width: 40,
-                                  height: 40),
-                            ),
-                          ),
+          FutureBuilder<User?>(
+              future: getProfile(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return InkWell(
+                    onTap: () {
+                      FadePageRoute.navigateToNextPage(context, Profile());
+                    },
+                    child: CircleAvatar(
+                      backgroundColor: Colors.deepOrange,
+                      radius: 20,
+                      child: ClipOval(
+                        child: Container(
+                          child: CachedNetworkImage(
+                              imageUrl:
+                                  'http://10.0.2.2:8000${snapshot.data?.profilePhoto}',
+                              placeholder: (context, url) => const Center(
+                                  child: Center(
+                                      child: CircularProgressIndicator())),
+                              errorWidget: (context, url, error) =>
+                                  Center(child: Icon(Icons.error)),
+                              fit: BoxFit.cover,
+                              width: 40,
+                              height: 40),
                         ),
-                      );
-                    } else if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return Center(
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    } else {
-                      return IconButton(
-                          onPressed: () {
-                            FadePageRoute.navigateToNextPage(
-                                context, Profile());
-                          },
-                          icon: Icon(CupertinoIcons.profile_circled));
-                    }
-                  }),
+                      ),
+                    ),
+                  );
+                } else if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return Center(
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                } else {
+                  return IconButton(
+                      onPressed: () {
+                        FadePageRoute.navigateToNextPage(context, Profile());
+                      },
+                      icon: Icon(CupertinoIcons.profile_circled));
+                }
+              }),
         ],
       ),
       backgroundColor: Colors.white,
@@ -558,7 +558,8 @@ class _ReserveHistoryState extends State<ReserveHistory> {
                                       decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(16),
-                                          color: const Color.fromARGB(255, 242, 200, 145),
+                                          color: const Color.fromARGB(
+                                              255, 242, 200, 145),
                                           boxShadow: const [
                                             BoxShadow(blurRadius: 4)
                                           ]),

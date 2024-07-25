@@ -40,12 +40,7 @@ class _ReservePageState extends State<ReservePage> {
       //print(myAccess);
       final response = await HttpClient.instance.get("api/profile/",
           options: Options(headers: {"Authorization": "JWT $myAccess"}));
-      User myUser = User(
-          isShiftManager: response.data["is_shift_manager"],
-          isSuperVisor: response.data["is_supervisor"],
-          id: response.data["id"],
-          userName: response.data["username"],
-          profilePhoto: response.data["profile"]);
+      User myUser = User.fromJson(response.data);
       return myUser;
     }
   }
@@ -63,7 +58,6 @@ class _ReservePageState extends State<ReservePage> {
       List<ShiftMeal> myShiftMeals = [];
 
       for (var i in response.data) {
-        print(i);
         Food food1 = Food(
             id: i["meal"]["food"]["id"],
             name: i["meal"]["food"]["name"],
@@ -87,12 +81,10 @@ class _ReservePageState extends State<ReservePage> {
               name: i["meal"]["dessert"]["name"],
               type: i["meal"]["dessert"]["type"]);
         }
-        //print("good1");
         List<Drink> myDrinks = [];
         for (var j in i["meal"]["drinks"]) {
-          myDrinks.add(Drink(name: j["name"] , id: j['id']));
+          myDrinks.add(Drink(name: j["name"], id: j['id']));
         }
-        //print("good2");
         Meal myMeal = Meal(
             drink: myDrinks,
             id: i["meal"]["id"],
@@ -108,7 +100,6 @@ class _ReservePageState extends State<ReservePage> {
             meal: myMeal,
             shift: myShift,
             isReserved: i["is_reserved"]);
-        //print("Success");
         myShiftMeals.add(temp);
       }
       return myShiftMeals;
@@ -131,6 +122,7 @@ class _ReservePageState extends State<ReservePage> {
         selectedShiftForMeal = true;
       } else {
         notAvailable = true;
+        selectedValue = null;
       }
     });
   }

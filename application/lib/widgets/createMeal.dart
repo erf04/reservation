@@ -72,7 +72,7 @@ class _MealCreationPageState extends State<MealCreationPage> {
     }
   }
 
-  Future<void> deleteData(Meal meal,String title) async {
+  Future<void> deleteData(Meal meal, String title) async {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
@@ -100,12 +100,7 @@ class _MealCreationPageState extends State<MealCreationPage> {
       //print(myAccess);
       final response = await HttpClient.instance.get("api/profile/",
           options: Options(headers: {"Authorization": "JWT $myAccess"}));
-      User myUser = User(
-          isShiftManager: response.data["is_shift_manager"],
-          isSuperVisor: response.data["is_supervisor"],
-          id: response.data["id"],
-          userName: response.data["username"],
-          profilePhoto: response.data["profile"]);
+      User myUser = User.fromJson(response.data);
       return myUser;
     }
   }
