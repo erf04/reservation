@@ -14,5 +14,6 @@ urlpatterns = [
     path('password/reset/',views.PasswordResetRequestView.as_view()),
     path('password/reset/confirm/',views.PasswordResetConfirmView.as_view()),
     path('meal/delete/<int:id>/',views.delete_meal),
-    path('manager/',views.ShiftManagerView.as_view())
+    path('manager/',views.ShiftManagerView.as_view()),
+    path('reservations/all/',views.get_reservations_for_supervisor)
 ]

@@ -543,11 +543,30 @@ class ShiftManagerView(APIView):
         return Response(data=serializer.data,status=status.HTTP_201_CREATED)
     
 
+def filter_reservations(request_data:dict):
+    user_search:str = request_data.get('user', '')
+    shift_search:str = request_data.get('shift', '')
+    date_search = request_data.get('date', None)
+    # date_search=ISO_to_gregorian(date_search)
+    print(user_search,shift_search,date_search)
+    reservations = Reservation.objects.filter(
+        Q(user__first_name__icontains=user_search) |
+        Q(user__last_name__icontains=user_search) |
+        Q(user__username__icontains=user_search) | 
+        Q(user__first_name__icontains=user_search.split()[0]) & Q(user__last_name__icontains=' '.join(user_search.split()[1:]))
+    ).filter(
+        shift_meal__shift__shift_name=shift_search,
+        shift_meal__date=date_search
+    )
+    return reservations
+
+
 @api_view(['POST'])
-def filter_reservations(request:Request):
-    user=request.user
-    
-        
+@permission_classes([permissions.IsAuthenticated,IsSupervisorOrReadOnly])
+def get_reservations_for_supervisor(request:Request):
+        reservations=filter_reservations(request_data=request.data)
+        serializer=ReservationSerializer(reservations,many=True,context={"request":request})
+        return Response(data=serializer.data,status=status.HTTP_200_OK)
 
 
 
