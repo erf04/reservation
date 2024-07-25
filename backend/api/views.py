@@ -541,6 +541,12 @@ class ShiftManagerView(APIView):
         )
         serializer=SupervisorRecordSerializer(supervisor_record,many=False)
         return Response(data=serializer.data,status=status.HTTP_201_CREATED)
+    
+
+@api_view(['POST'])
+def filter_reservations(request:Request):
+    user=request.user
+    
         
 
 
