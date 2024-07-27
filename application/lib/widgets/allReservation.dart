@@ -43,7 +43,7 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        if (selectedValue != null) fetchReservations();
+        fetchReservations();
       });
     }
   }
@@ -64,32 +64,15 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
           });
       reservations = [];
       List<UserMeal> userMeals = [];
-      setState(() {
-        if (response.statusCode == 200) {
-          for (var i in response.data) {
-            bool flag = true;
-            Reservation myReservation = Reservation.fromJson(i);
-            reservations.add(myReservation);
-            for (var j in userMeals) {
-              if (myReservation.user.id == j.user.id) {
-                if (j.launchName == '' &&
-                    myReservation.shiftMeal.meal.dailyMeal == 'ناهار') {
-                  j.launchName = myReservation.shiftMeal.meal.food.name;
-                  flag = false;
-                } else if (j.dinnerName == '' &&
-                    myReservation.shiftMeal.meal.dailyMeal == 'شام') {
-                  j.dinnerName = myReservation.shiftMeal.meal.food.name;
-                  flag = false;
-                }
-              }
-            }
-            if (flag) {
-              userMeals.add(UserMeal(user: myReservation.user));
-            }
-          }
+
+      if (response.statusCode == 200) {
+        print(response.data);
+        for (var i in response.data) {
+          UserMeal myUserMeal = UserMeal.fromJson(i);
+          userMeals.add(myUserMeal);
         }
-      });
-      return userMeals;
+        return userMeals;
+      }
     }
     return [];
   }
@@ -259,9 +242,9 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
                           prefixIcon: Icon(Icons.search),
                         ),
                         onChanged: (value) {
-                          if (selectedValue != null && selectedDate != null) {
+                          setState(() {
                             fetchReservations();
-                          }
+                          });
                         },
                       ),
                     ),
@@ -286,8 +269,13 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
                                       DataCell(Text(reservation.user.firstName +
                                           ' ' +
                                           reservation.user.lastName)),
-                                      DataCell(Text(reservation.launchName)),
-                                      DataCell(Text(reservation.dinnerName)),
+                                      DataCell(Text(reservation.lunch == null
+                                          ? ''
+                                          : reservation.lunch!.meal.food.name)),
+                                      DataCell(Text(reservation.dinner == null
+                                          ? ''
+                                          : reservation
+                                              .dinner!.meal.food.name)),
                                     ],
                                   );
                                 }).toList(),
@@ -321,12 +309,22 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
 
 class UserMeal {
   final User user;
-  String launchName = '';
-  String dinnerName = '';
+  final ShiftMeal? lunch;
+  final ShiftMeal? dinner;
 
   UserMeal({
     required this.user,
+    required this.lunch,
+    required this.dinner,
   });
+
+  factory UserMeal.fromJson(Map<String, dynamic> json) {
+    return UserMeal(
+        user: User.fromJson(json['user']),
+        lunch: json['lunch'] == null ? null : ShiftMeal.fromJson(json['lunch']),
+        dinner:
+            json['dinner'] == null ? null : ShiftMeal.fromJson(json['dinner']));
+  }
 }
 
 class Reservation {
