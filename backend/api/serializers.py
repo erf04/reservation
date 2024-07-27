@@ -252,10 +252,12 @@ class SupervisorReservationSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'lunch', 'dinner', 'date']
         
     def get_lunch(self, obj:Reservation):
-        return ShiftMealSerializer(obj.shift_meal,context=self.context).data if obj.shift_meal.meal.daily_meal == 'ناهار' else None
+        shift_meal=ShiftMeal.objects.filter(date=obj.shift_meal.date,meal__daily_meal="ناهار").first()
+        return ShiftMealSerializer(shift_meal,many=False,context=self.context).data
 
     def get_dinner(self, obj:Reservation):
-        return ShiftMealSerializer(obj.shift_meal,context=self.context).data if obj.shift_meal.meal.daily_meal == 'شام' else None
+        shift_meal=ShiftMeal.objects.filter(date=obj.shift_meal.date,meal__daily_meal="شام").first()
+        return ShiftMealSerializer(shift_meal,many=False,context=self.context).data
 
 
     

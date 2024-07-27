@@ -567,13 +567,13 @@ def filter_reservations(request_data:dict):
 def get_reservations_for_supervisor(request:Request):
         reservations=filter_reservations(request_data=request.data)
         serializer=SupervisorReservationSerializer(reservations,many=True,context={"request":request}).data
-        response_data = {}
-        if serializer:
-            response_data['user'] = serializer[0]['user']
-            response_data['date'] = serializer[0]['date']
-            response_data['lunch'] = next((res['lunch'] for res in serializer if res['lunch']), None)
-            response_data['dinner'] = next((res['dinner'] for res in serializer if res['dinner']), None)
-        return Response(data=response_data,status=status.HTTP_200_OK)
+        # response_data = {}
+        # if serializer:
+        #     response_data['user'] = serializer[0]['user']
+        #     response_data['date'] = serializer[0]['date']
+        #     response_data['lunch'] = next((res['lunch'] for res in serializer if res['lunch']), None)
+        #     response_data['dinner'] = next((res['dinner'] for res in serializer if res['dinner']), None)
+        return Response(data=serializer,status=status.HTTP_200_OK)
 
 
 
