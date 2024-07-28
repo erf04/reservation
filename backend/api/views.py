@@ -99,7 +99,7 @@ class ReservationView(APIView):
     @permission_classes([permissions.IsAuthenticated])
     def get(self,request:Request):
         now=jdatetime.datetime.today()
-        reservations=Reservation.objects.filter(user=request.user,date__lte=F('shift_meal__date'),shift_meal__date__gte=now)
+        reservations=Reservation.objects.filter(user=request.user,date__lte=F('shift_meal__date'),shift_meal__date__gte=now).order_by('shift_meal__date')
         serialized=ReservationSerializer(reservations,many=True,context={"request":request})
         return Response(data=serialized.data,status=status.HTTP_200_OK)
     
