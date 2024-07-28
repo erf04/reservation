@@ -7,8 +7,10 @@ import 'package:application/widgets/reservation.dart';
 import 'package:application/widgets/reserveFood.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferencesManager.instance.init();
   SystemChrome.setPreferredOrientations([

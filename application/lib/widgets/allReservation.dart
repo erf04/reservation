@@ -64,12 +64,14 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
           });
       reservations = [];
       List<UserMeal> userMeals = [];
-
+      List<int> ids = [];
       if (response.statusCode == 200) {
-        print(response.data);
         for (var i in response.data) {
           UserMeal myUserMeal = UserMeal.fromJson(i);
-          userMeals.add(myUserMeal);
+          if (!ids.contains(myUserMeal.user.id)) {
+            userMeals.add(myUserMeal);
+            ids.add(myUserMeal.user.id);
+          }
         }
         return userMeals;
       }
@@ -256,7 +258,6 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
                               child: DataTable(
                                 columns: [
                                   DataColumn(label: Text('Full Name')),
