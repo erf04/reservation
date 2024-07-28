@@ -9,6 +9,29 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from datetime import datetime
 from datetime import timedelta
+from djoser.serializers import UserCreateSerializer
+
+
+class CustomUserCreateSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'first_name', 'last_name']
+
+    def validate(self, attrs):
+        # Validate first_name and last_name fields
+        if not attrs.get('first_name'):
+            raise serializers.ValidationError({'first_name': 'First name is required'})
+        if not attrs.get('last_name'):
+            raise serializers.ValidationError({'last_name': 'Last name is required'})
+
+        return super().validate(attrs)
+    
+    def perform_create(self, validated_data:dict):
+        user = super().perform_create(validated_data)
+        user.first_name = validated_data.get('first_name')
+        user.last_name = validated_data.get('last_name')
+        user.save()
+        return user
 
 class FoodSerializer(ModelSerializer):
     class Meta:
