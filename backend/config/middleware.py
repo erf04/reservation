@@ -7,7 +7,7 @@ class ValidateAppTokenMiddleware:
         self.get_response = get_response
 
     def __call__(self, request:HttpRequest):
-        if request.path.startswith('/api/password/reset/') or request.path.startswith('/auth/users/'):
+        if request.path.startswith('/api/password/reset/') or request.path.startswith('/api/register/'):
             token = request.headers.get('App-Token')
             if token != settings.UNIQUE_APP_TOKEN:
                 return JsonResponse({'detail': 'Invalid token'}, status=403)

@@ -1,11 +1,12 @@
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status,generics
 from rest_framework import permissions
 from .serializers import (MealSerializer,ShiftMealSerializer,ReservationSerializer,
 ShiftSerializer,FoodSerializer,CombinedMealShiftSerializer
 ,CombinedFoodCreationSerializer,UserSerializer,PasswordResetRequestSerializer,PasswordResetConfirmSerializer,
-DrinkSerializer,MealCreationSerializer,SupervisorRecordSerializer,SupervisorReservationSerializer)
+DrinkSerializer,MealCreationSerializer,SupervisorRecordSerializer,SupervisorReservationSerializer,RegisterSerializer, LoginSerializer
+)
 from rest_framework.decorators import api_view,permission_classes
 from .models import ShiftMeal,Meal,Reservation,Shift,Food,FoodType,DailyMeal,User,Drink,ShiftManager,SupervisorRecord
 import jdatetime
@@ -575,6 +576,20 @@ def get_reservations_for_supervisor(request:Request):
         #     response_data['lunch'] = next((res['lunch'] for res in serializer if res['lunch']), None)
         #     response_data['dinner'] = next((res['dinner'] for res in serializer if res['dinner']), None)
         return Response(data=serializer,status=status.HTTP_200_OK)
+
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
+
+class LoginView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 
 
