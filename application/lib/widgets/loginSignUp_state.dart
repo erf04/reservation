@@ -29,7 +29,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
   TextEditingController myController6 = TextEditingController();
   static Future<bool> getAuthLogin(
       String myUser, String myPass, context) async {
-    final response = await HttpClient.instance.post('auth/jwt/create/',
+    final response = await HttpClient.instance.post('api/login/',
         data: {'username': myUser, 'password': myPass});
     if (response.statusCode == 200) {
       TokenManager.saveTokens(
@@ -49,7 +49,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
       String email,
       BuildContext context) async {
     final response;
-    response = await HttpClient.instance.post('auth/users/',
+    response = await HttpClient.instance.post('api/register/',
         options: Options(headers: {'App-Token': dotenv.env['API_KEY']}),
         data: {
           'username': myUser,

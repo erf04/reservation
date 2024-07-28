@@ -16,8 +16,7 @@ class SupervisorAssignmentPage extends StatefulWidget {
   const SupervisorAssignmentPage({super.key});
 
   @override
-  _SupervisorAssignmentPageState createState() =>
-      _SupervisorAssignmentPageState();
+  _SupervisorAssignmentPageState createState() => _SupervisorAssignmentPageState();
 }
 
 class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
@@ -115,21 +114,25 @@ class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
 
   @override
   Widget build(BuildContext context) {
+    var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-                onPressed: () {
-                  FadePageRoute.navigateToNextPage(context, MainPage());
-                },
-                icon: const Icon(
-                  CupertinoIcons.back,
-                  size: 40,
-                  color: Color.fromARGB(255, 2, 16, 43),
-                )),
+              onPressed: () {
+                FadePageRoute.navigateToNextPage(context, MainPage());
+              },
+              icon: const Icon(
+                CupertinoIcons.back,
+                size: 40,
+                color: Color.fromARGB(255, 2, 16, 43),
+              ),
+            ),
             Text(
               'صفحه سرپرست',
               style: Theme.of(context)
@@ -164,8 +167,7 @@ class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
                         ),
                       ),
                     );
-                  } else if (snapshot.connectionState ==
-                      ConnectionState.waiting) {
+                  } else if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
                       child: CircularProgressIndicator(),
                     );
@@ -189,8 +191,7 @@ class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
               //color: Colors.white,
               image: DecorationImage(
                 image: AssetImage('assets/new4.jpg'),
-                fit: BoxFit
-                    .cover, // This ensures the image covers the entire background
+                fit: BoxFit.cover, // This ensures the image covers the entire background
               ),
             ),
             child: FutureBuilder<List<User>>(
@@ -204,16 +205,16 @@ class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
                   return Center(child: Text('No users found'));
                 } else {
                   return Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.05, vertical: screenHeight * 0.02),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(
-                          height: 10,
+                          height: screenHeight * 0.01,
                         ),
                         DropdownButtonFormField<User>(
-                          decoration:
-                              InputDecoration(labelText: 'Select Supervisor'),
+                          decoration: InputDecoration(labelText: 'Select Supervisor'),
                           items: snapshot.data!.map((User user) {
                             return DropdownMenuItem<User>(
                               value: user,
@@ -227,19 +228,16 @@ class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
                           },
                           value: selectedUser,
                         ),
-                        SizedBox(height: 16),
+                        SizedBox(height: screenHeight * 0.02),
                         Row(
                           children: [
                             Expanded(
                               child: TextFormField(
-                                decoration:
-                                    InputDecoration(labelText: 'From Date'),
+                                decoration: InputDecoration(labelText: 'From Date'),
                                 readOnly: true,
                                 onTap: () => _selectDate(context, true),
                                 controller: TextEditingController(
-                                  text: fromDate != null
-                                      ? fromDate!.formatCompactDate()
-                                      : '',
+                                  text: fromDate != null ? fromDate!.formatCompactDate() : '',
                                 ),
                               ),
                             ),
@@ -249,19 +247,16 @@ class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 16),
+                        SizedBox(height: screenHeight * 0.02),
                         Row(
                           children: [
                             Expanded(
                               child: TextFormField(
-                                decoration:
-                                    InputDecoration(labelText: 'To Date'),
+                                decoration: InputDecoration(labelText: 'To Date'),
                                 readOnly: true,
                                 onTap: () => _selectDate(context, false),
                                 controller: TextEditingController(
-                                  text: toDate != null
-                                      ? toDate!.formatCompactDate()
-                                      : '',
+                                  text: toDate != null ? toDate!.formatCompactDate() : '',
                                 ),
                               ),
                             ),
@@ -271,7 +266,7 @@ class _SupervisorAssignmentPageState extends State<SupervisorAssignmentPage> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 30),
+                        SizedBox(height: screenHeight * 0.03),
                         Center(
                           child: ElevatedButton(
                             onPressed: _submit,
