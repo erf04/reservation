@@ -57,11 +57,14 @@ class _LoginSignUpState extends State<LoginSignUp> {
           'first_name': firstName,
           'last_name': lastName,
           'email': email
-        });
+        }).catchError((error) {
+      return true;
+    });
     if (response.statusCode == 201) {
       _LoginSignUpState.getAuthLogin(myUser, myPass, context);
       return false;
     } else {
+      
       return true;
     }
   }

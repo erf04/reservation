@@ -125,6 +125,7 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           foregroundColor: Colors.white,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
