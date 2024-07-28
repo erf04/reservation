@@ -7,6 +7,8 @@ from django.utils.encoding import force_str
 # from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from datetime import datetime
+from datetime import timedelta
 
 class FoodSerializer(ModelSerializer):
     class Meta:
@@ -80,7 +82,7 @@ class ShiftMealSerializer(ModelSerializer):
         fields=('id','meal','shift','date','is_reserved')
 
     def get_is_reserved(self,obj:ShiftMeal):
-        return Reservation.objects.filter(shift_meal=obj,user=self.context["request"].user).exists()
+        return Reservation.objects.filter(shift_meal=obj,user=self.context["request"].user).exists() and (obj.date > datetime.now())
 
 class UserSerializer(ModelSerializer):
     class Meta:
