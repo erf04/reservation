@@ -18,4 +18,5 @@ urlpatterns = [
     path('reservations/all/',views.get_reservations_for_supervisor),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.LoginView.as_view(), name='login'),
+    path('shiftmeal/filter/',views.filter_shift_meals)
 ]

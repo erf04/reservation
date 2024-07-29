@@ -239,19 +239,19 @@ class ShiftMealAPIView(APIView):
     def post(self,request:Request,*args,**kwargs):
         shift_name=request.data.get('shift-name')
         date=request.data.get('date')
-        meal_id=request.data.get('meal-id') 
-        if not shift_name or not date or not meal_id:
+        meal_ids=request.data.get('meal-id') 
+        if not shift_name or not date or len(meal_ids)<4:
             return Response({"error": "shift or date or meal is required."}, status=status.HTTP_400_BAD_REQUEST)
+        i=0
         try:
-            shift,created=Shift.objects.get_or_create(shift_name=shift_name)
-            meal=Meal.objects.get(id=meal_id)
-            shift_meal,created=ShiftMeal.objects.get_or_create(shift=shift,date=ISO_to_gregorian(date),meal=meal)
-            if not created:
-                return Response(data={"error":"you have already create this shift meal"},status=status.HTTP_306_RESERVED)
-            serialized=ShiftMealSerializer(shift_meal,many=False,context={"request":request})
-            return Response(data=serialized.data,status=status.HTTP_201_CREATED)
+            # remove previous shiftmeals 
+            ShiftMeal.objects.filter(date=ISO_to_gregorian(date),shift__shift_name=shift_name).delete()
+            for i in range(4):
+                shift_meal=ShiftMeal.objects.create(shift__shift_name=shift_name,date=ISO_to_gregorian(date),meal__id=meal_ids[i])
+            # serialized=ShiftMealSerializer(shift_meal,many=False,context={"request":request})
+            return Response(status=status.HTTP_201_CREATED)
         except Meal.DoesNotExist:
-            return Response(data={"error":f"there no existing meal with id {meal_id}"},status=status.HTTP_204_NO_CONTENT)
+            return Response(data={"error":f"there no existing meal with id {meal_ids[i]}"},status=status.HTTP_204_NO_CONTENT)
         except Shift.DoesNotExist:
             return Response(data={"error":f"there no existing shift with name {shift_name}"},status=status.HTTP_204_NO_CONTENT)
         
@@ -590,6 +590,19 @@ class LoginView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+    
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated,IsSupervisorOrReadOnly])
+def filter_shift_meals(request:Request):
+    date=request.data.get('date')
+    shift_name=request.data.get('shift')
+    if not date or not shift_name:
+        return Response(data={'error':"date or shift_name is required"},status=status.HTTP_400_BAD_REQUEST)
+    shift_meals=ShiftMeal.objects.filter(date=ISO_to_gregorian(date),shift__shift_name=shift_name)
+    serializer=ShiftMealSerializer(shift_meals,many=True,context={"request":request})
+    return Response(serializer.data,status=status.HTTP_200_OK)
+
 
 
 
