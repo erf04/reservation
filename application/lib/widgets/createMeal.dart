@@ -1,4 +1,5 @@
 import 'package:application/design/meal.dart';
+import 'package:application/design/shiftmeal.dart';
 import 'package:application/design/user.dart';
 import 'package:application/repository/HttpClient.dart';
 import 'package:application/repository/tokenManager.dart';
@@ -105,29 +106,66 @@ class _MealCreationPageState extends State<MealCreationPage> {
     }
   }
 
+  Future<void> fetchNew() async {
+    VerifyToken? myVerify = await TokenManager.verifyAccess(context);
+    if (myVerify == VerifyToken.verified) {
+      String? myAccess = await TokenManager.getAccessToken();
+      selectedDate = selectedDate!.replaceAll('/', '-');
+      //print("WHAT THE FUCK");
+      final response = await HttpClient.instance.post(
+        'api/shiftmeal/filter/',
+        options: Options(headers: {'Authorization': 'JWT $myAccess'}),
+        data: jsonEncode(<String, dynamic>{
+          'shift': selectedShift!,
+          'date': selectedDate!,
+        }),
+      );
+      if (response.statusCode == 200) {
+        _selectedDinnerMeals = [];
+        _selectedLunchMeals = [];
+        for (var i in response.data) {
+          ShiftMeal myShiftMeal = ShiftMeal.fromJson(i);
+          if (myShiftMeal.meal.dailyMeal == 'ناهار') {
+            _selectedLunchMeals.add(myShiftMeal.meal);
+          } else {
+            _selectedDinnerMeals.add(myShiftMeal.meal);
+          }
+          selectedMeals.add(myShiftMeal.meal);
+        }
+      } else {
+        setState(() {
+          internetError = true;
+        });
+      }
+
+      setState(() {});
+    }
+  }
+
   Future<void> submitData() async {
     VerifyToken? myVerify = await TokenManager.verifyAccess(context);
     if (myVerify == VerifyToken.verified) {
       String? myAccess = await TokenManager.getAccessToken();
       selectedDate = selectedDate!.replaceAll('/', '-');
       //print("WHAT THE FUCK");
-      print(selectedMeals);
+      List<int> mealId = [];
       for (var i in selectedMeals) {
-        final response = await HttpClient.instance.post(
-          'api/shiftmeal/create/',
-          options: Options(headers: {'Authorization': 'JWT $myAccess'}),
-          data: jsonEncode(<String, dynamic>{
-            'shift-name': selectedShift!,
-            'meal-id': i!.id,
-            'date': selectedDate!,
-          }),
-        );
-        if (response.statusCode == 201) {
-        } else {
-          setState(() {
-            internetError = true;
-          });
-        }
+        mealId.add(i!.id);
+      }
+      final response = await HttpClient.instance.post(
+        'api/shiftmeal/create/',
+        options: Options(headers: {'Authorization': 'JWT $myAccess'}),
+        data: jsonEncode(<String, dynamic>{
+          'shift-name': selectedShift!,
+          'meal-id': mealId,
+          'date': selectedDate!,
+        }),
+      );
+      if (response.statusCode == 201) {
+      } else {
+        setState(() {
+          internetError = true;
+        });
       }
 
       setState(() {
@@ -369,6 +407,9 @@ class _MealCreationPageState extends State<MealCreationPage> {
                                       onChanged: (String? newValue) {
                                         setState(() {
                                           selectedShift = newValue;
+                                          if (this.selectedDate != null) {
+                                            fetchNew();
+                                          }
                                         });
                                       },
                                       items: shifts
@@ -428,6 +469,9 @@ class _MealCreationPageState extends State<MealCreationPage> {
                                           _selectedDate = pickedDate;
                                           selectedDate =
                                               pickedDate.formatCompactDate();
+                                          if (selectedShift != null) {
+                                            fetchNew();
+                                          }
                                         });
                                       }
                                     },
@@ -496,6 +540,7 @@ class _MealCreationPageState extends State<MealCreationPage> {
                             EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                       ),
                       onPressed: () async {
+                        print(selectedMeals.length);
                         if (_selectedDate != null &&
                             (!selectedMeals.isEmpty) &&
                             selectedShift != null) {
