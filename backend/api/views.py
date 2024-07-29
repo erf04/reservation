@@ -248,7 +248,7 @@ class ShiftMealAPIView(APIView):
             ShiftMeal.objects.filter(date=ISO_to_gregorian(date),shift__shift_name=shift_name).delete()
             shift=Shift.objects.get(shift_name=shift_name)
             for i in range(4):
-                meal=Meal.objects.get(meal_ids[i])
+                meal=Meal.objects.get(pk=meal_ids[i])
                 shift_meal=ShiftMeal.objects.create(shift=shift,date=ISO_to_gregorian(date),meal=meal)
             # serialized=ShiftMealSerializer(shift_meal,many=False,context={"request":request})
             return Response(status=status.HTTP_201_CREATED)
