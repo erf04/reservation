@@ -11,6 +11,7 @@ import 'package:choice/choice.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -56,7 +57,6 @@ class _MealCreationPageState extends State<MealCreationPage> {
       if (response.statusCode == 200) {
         setState(() {
           for (var i in response.data['meals']) {
-            print(i);
             meals.add(Meal.fromJson(i));
           }
         });

@@ -62,7 +62,6 @@ class _MealReservationsPageState extends State<MealReservationsPage> {
             'date': myDate,
             'shift': selectedValue
           });
-      print(response.data[1]);
       reservations = [];
       List<UserMeal> userMeals = [];
       List<int> ids = [];
