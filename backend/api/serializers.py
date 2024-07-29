@@ -306,12 +306,16 @@ class SupervisorReservationSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'lunch', 'dinner', 'date']
         
     def get_lunch(self, obj:Reservation):
-        shift_meal=ShiftMeal.objects.filter(date=obj.shift_meal.date,meal__daily_meal="ناهار").first()
-        return ShiftMealSerializer(shift_meal,many=False,context=self.context).data
+        shift_meal_query_set=ShiftMeal.objects.filter(reservations=obj,meal__daily_meal="ناهار")
+        if shift_meal_query_set.exists():
+            return ShiftMealSerializer(shift_meal_query_set.first(),many=False,context=self.context).data
+        return None
 
     def get_dinner(self, obj:Reservation):
-        shift_meal=ShiftMeal.objects.filter(date=obj.shift_meal.date,meal__daily_meal="شام").first()
-        return ShiftMealSerializer(shift_meal,many=False,context=self.context).data
+        shift_meal_query_set=ShiftMeal.objects.filter(reservations=obj,meal__daily_meal="شام")
+        if shift_meal_query_set.exists():
+            return ShiftMealSerializer(shift_meal_query_set.first(),many=False,context=self.context).data
+        return None
 
 
     
