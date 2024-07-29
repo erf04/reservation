@@ -570,6 +570,7 @@ def filter_reservations(request_data:dict):
 @permission_classes([permissions.IsAuthenticated,IsSupervisorOrReadOnly])
 def get_reservations_for_supervisor(request:Request):
         reservations=filter_reservations(request_data=request.data)
+        reservations=reservations.order_by('user__first_name')
         serializer=SupervisorReservationSerializer(reservations,many=True,context={"request":request}).data
         # response_data = {}
         # if serializer:
