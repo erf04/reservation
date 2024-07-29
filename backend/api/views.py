@@ -240,7 +240,7 @@ class ShiftMealAPIView(APIView):
         shift_name=request.data.get('shift-name')
         date=request.data.get('date')
         meal_ids=request.data.get('meal-id') 
-        if not shift_name or not date or len(meal_ids)<4:
+        if not shift_name or not date or 0<len(meal_ids)<=4:
             return Response({"error": "shift or date or meal is required."}, status=status.HTTP_400_BAD_REQUEST)
         i=0
         try:
