@@ -491,7 +491,7 @@ def check_code(request:Request):
     code = request.data.get('code')
     email = request.data.get('email')
     user=User.objects.get(email=email)
-    if code==request.user.resend_code:
+    if code==user.reset_code:
         return Response(status=status.HTTP_200_OK)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -608,7 +608,7 @@ class RegisterView(generics.CreateAPIView):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-    
+
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [permissions.AllowAny]
