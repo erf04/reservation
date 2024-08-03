@@ -26,7 +26,7 @@ The Tavanir Food Reservation App is designed to streamline meal reservations for
 
 ### backend setup
 ```
-git clone
+git clone https://github.com/erf04/reservation.git
 cd backend
 ```
 `then install the requirements`
